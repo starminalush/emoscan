@@ -1,16 +1,11 @@
-from io import BytesIO
-
 import cv2
 import numpy as np
-import ray
-from PIL import Image
 from ray import serve
 import onnxruntime as nx
-from loguru import logger
 from dotenv import load_dotenv
 import mlflow
 from fastapi import FastAPI, UploadFile, File
-from fastapi.responses import Response
+from fastapi.responses import PlainTextResponse
 
 load_dotenv()
 
@@ -29,7 +24,7 @@ class FERDeployment:
     def load_image_into_numpy_array(self, data):
         return cv2.imdecode(np.frombuffer(data, np.uint8), -1)
 
-    @app.post("/dan")
+    @app.post("/dan", response_class=PlainTextResponse)
     async def classify(self, image: UploadFile = File(...)):
         image_np = self.load_image_into_numpy_array(await image.read())
         image_np = cv2.resize(image_np, (224, 224))
@@ -40,9 +35,8 @@ class FERDeployment:
         input_name = self.ort_session.get_inputs()[0].name
         print(input_name)
         ortvalue = nx.OrtValue.ortvalue_from_numpy(img, "cpu", 0)
-        result = self.ort_session.run(None, {input_name: ortvalue})
-        logger.info(result)
-        return result[0]
+        cls, feature, heads = self.ort_session.run(None, {input_name: ortvalue})
+        return str(np.argmax(cls, 1)[0])
 
 
 backend = FERDeployment.bind(
