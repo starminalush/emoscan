@@ -1,4 +1,4 @@
-version: "3.6"
+version: "2.4"
 services:
   mvp:
     build: ./frontend/build
@@ -14,4 +14,32 @@ services:
       - "${FRONTEND_PORT}:8080"
 
     networks:
-      - default
+      - internal-network
+
+  model_deployment:
+    build: ./model_deployment/build
+    runtime: nvidia
+    shm_size: '6gb'
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=0
+
+    volumes:
+      - ./model_deployment/app:/app
+    restart: on-failure
+    env_file:
+      - .env
+      - ./model_deployment/.env
+
+    ports:
+      - "8000:8000"
+      - "8265:8265"
+    command: serve run --host 0.0.0.0 main:backend
+#    command: /bin/bash
+
+    networks:
+      - internal-network
+
+networks:
+  internal-network:
+    name: mfdp-2023_default
+    external: True
