@@ -15,7 +15,6 @@ RUN pip install -U --no-cache-dir -r requirements.txt
 
 ENV PATH=/usr/local/cuda-11.6/bin:$PATH
 ENV  LD_LIBRARY_PATH=/usr/local/cuda-11.6/lib64:$LD_LIBRARY_PATH
-#RUN pip install torch==1.13.1 torchvision==0.14.0
 RUN pip install deep-sort-realtime
 RUN pip install facenet-pytorch
 RUN pip install loguru

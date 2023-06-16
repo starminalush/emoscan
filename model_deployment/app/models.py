@@ -2,6 +2,7 @@ from copy import copy
 
 import cv2
 import mlflow
+import os
 import numpy as np
 import onnxruntime as nx
 import torch
@@ -13,9 +14,10 @@ from ray import serve
 @serve.deployment
 class EmotionRecognizer:
     def __init__(self, model_uri):
+        os.environ['CUDA_VISIBLE_DEVICES'] = '0'
         local_path = mlflow.artifacts.download_artifacts(model_uri)
         self.ort_session = nx.InferenceSession(
-            local_path, providers=["CPUExecutionProvider"]
+            local_path, providers=["CUDAExecutionProvider"]
         )
 
     def __call__(self, image, bbox) -> str:
@@ -27,7 +29,7 @@ class EmotionRecognizer:
         face = face[np.newaxis, :]
 
         input_name = self.ort_session.get_inputs()[0].name
-        ortvalue = nx.OrtValue.ortvalue_from_numpy(face, "cpu", 0)
+        ortvalue = nx.OrtValue.ortvalue_from_numpy(face, "cuda", 0)
         cls, _, _ = self.ort_session.run(None, {input_name: ortvalue})
         return str(np.argmax(cls, 1)[0])
 
