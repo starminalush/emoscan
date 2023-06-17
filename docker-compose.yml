@@ -20,8 +20,6 @@ services:
     build: ./model_deployment/build
     runtime: nvidia
     shm_size: '6gb'
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=0
 
     volumes:
       - ./model_deployment/app:/app
@@ -34,7 +32,6 @@ services:
       - "8000:8000"
       - "8265:8265"
     command: serve run --host 0.0.0.0 main:backend
-#    command: /bin/bash
 
     networks:
       - internal-network

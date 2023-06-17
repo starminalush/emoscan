@@ -10,21 +10,7 @@ RUN apt install -y  --no-install-recommends  build-essential python3-pip python3
 COPY ./requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install -U --no-cache-dir -r requirements.txt
-
-
-
+RUN pip install https://github.com/KaiyangZhou/deep-person-reid/archive/master.zip
 ENV PATH=/usr/local/cuda-11.6/bin:$PATH
-ENV  LD_LIBRARY_PATH=/usr/local/cuda-11.6/lib64:$LD_LIBRARY_PATH
-RUN pip install deep-sort-realtime
-RUN pip install facenet-pytorch
-RUN pip install loguru
+ENV LD_LIBRARY_PATH=/usr/local/cuda-11.6/lib64:$LD_LIBRARY_PATH
 WORKDIR /app
-
-
-
-
-
-
-
-
-

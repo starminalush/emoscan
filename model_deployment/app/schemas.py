@@ -1,12 +1,16 @@
 from pydantic import BaseModel
 
-
-class FaceBbox(BaseModel):
-    x: int
-    y: int
-    x1: int
-    y1: int
+from aliases import DetectionBbox
 
 
 class Image(BaseModel):
     img_bytes: str
+
+
+class TrackerResult(BaseModel):
+    bbox: DetectionBbox
+    track_id: int
+
+
+class RecognitionResult(TrackerResult):
+    emotion: str

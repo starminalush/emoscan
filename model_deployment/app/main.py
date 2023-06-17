@@ -1,25 +1,15 @@
 import asyncio
-import base64
-import json
 
-import cv2
 import numpy as np
 import ray
-import torch
-from facenet_pytorch import MTCNN
 from fastapi import FastAPI
-from loguru import logger
 from models import EmotionRecognizer, FaceDetector, Tracker
 from ray import serve
-from schemas import Image
+from schemas import Image, RecognitionResult, TrackerResult
+from utils import base64_to_numpy
+
 
 app = FastAPI()
-
-
-def base64_to_numpy(image: str) -> np.ndarray:
-    im_bytes = base64.b64decode(image)
-    im_arr = np.frombuffer(im_bytes, dtype=np.uint8)  # im_arr is one-dim Numpy array
-    return cv2.imdecode(im_arr, flags=cv2.IMREAD_COLOR)
 
 
 @serve.deployment
@@ -32,19 +22,27 @@ class FER:
         self.emotion_recognizer = emotion_recognition_handler
         self.tracker = tracker_handler
 
-    @app.post("/")
+    @app.post("/", response_model=list[RecognitionResult])
     async def detect(self, image: Image):
-        image = base64_to_numpy(image.img_bytes)
-        result = await self.face_detector.remote(image)
-        bboxes = await result
+        image: np.ndarray = base64_to_numpy(image.img_bytes)
+        bboxes = await (await self.face_detector.remote(image))
 
-        emotion_recognitions_task = [
-            self.emotion_recognizer.remote(image, bbox) for bbox in bboxes
+        tracker_results: list[TrackerResult] = ray.get(
+            await self.tracker.remote(image, bboxes)
+        )
+        for t in tracker_results:
+            ray.logger.info(t)
+            ray.logger.info(t.track_id)
+
+        emotion_recognition_tasks = [
+            self.emotion_recognizer.remote(image, tracker_result.bbox)
+            for tracker_result in tracker_results
         ]
-        emotions = ray.get(await asyncio.gather(*emotion_recognitions_task))
-
-        tracker_result = await self.tracker.remote(image, bboxes, emotions)
-        return await tracker_result
+        emotions = ray.get(await asyncio.gather(*emotion_recognition_tasks))
+        return [
+            {"emotion": emotion, "track_id": item.track_id, "bbox": item.bbox}
+            for emotion, item in zip(emotions, tracker_results)
+        ]
 
 
 backend = FER.bind(
