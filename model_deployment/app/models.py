@@ -49,7 +49,7 @@ class FaceDetector:
 
     def __call__(self, image: np.ndarray):
         boxes, _ = self.model.detect(image)
-        return boxes.tolist()
+        return boxes.tolist() if type(boxes) is np.ndarray else None
 
 
 @serve.deployment(ray_actor_options={"num_cpus": 0, "num_gpus": 0.25})

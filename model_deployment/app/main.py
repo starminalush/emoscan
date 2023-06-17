@@ -22,11 +22,14 @@ class FER:
         self.emotion_recognizer = emotion_recognition_handler
         self.tracker = tracker_handler
 
-    @app.post("/", response_model=list[RecognitionResult])
+    @app.post("/")
     async def detect(self, image: Image):
         image: np.ndarray = base64_to_numpy(image.img_bytes)
         bboxes = await (await self.face_detector.remote(image))
 
+        if not bboxes:
+            return []
+        ray.logger.info(image)
         tracker_results: list[TrackerResult] = ray.get(
             await self.tracker.remote(image, bboxes)
         )

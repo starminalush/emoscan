@@ -1,0 +1,9 @@
+fastapi
+uvicorn==0.13.1
+httpx
+ffmpeg-python
+numpy
+python-multipart
+av
+loguru
+opencv-python
