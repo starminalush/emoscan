@@ -1,6 +1,6 @@
 import asyncio
 import tempfile
-import uuid
+from PIL import Image
 from base64 import b64encode
 from itertools import chain, islice
 from pathlib import Path
@@ -9,7 +9,7 @@ import httpx
 from fastapi import APIRouter, UploadFile, File
 import os
 from loguru import logger
-
+from schemas.emotion_detection import EmotionDetectionResponse
 from utils import ImageConverter, extract_frames_from_video
 
 router = APIRouter()
@@ -18,32 +18,45 @@ router = APIRouter()
 async def recognize(img_bytes):
     try:
         async with httpx.AsyncClient() as client:
-            body = {
-                "img_bytes": img_bytes
-            }
-            response = await client.post(url=os.getenv("MODEL_DEPLOYMENT_URI"), json=body)
+            body = {"img_bytes": img_bytes}
+            response = await client.post(
+                url=os.getenv("MODEL_DEPLOYMENT_URI"), json=body
+            )
             return response.json()
     except Exception as err:
         logger.error(err)
         return {}
 
+
+def crop_face_from_image(frame: Image, bbox):
+    return frame.crop(box=bbox)
+
+
 def clean_result(emotion_recognition_result):
-    return [item for item in [item for sublist in emotion_recognition_result for item in sublist] if item and item["emotion"] != "undefined emotion"]
+    return [
+        item
+        for item in emotion_recognition_result
+        if item and item["emotion"] != "undefined emotion"
+    ]
 
 
-@router.post('/')
+@router.post("/", response_model=list[EmotionDetectionResponse])
 async def upload_file(
-        file: UploadFile = File(..., content_type=["image/jpeg", "image/png", "video/mp4", "video/x-msvideo"])):
+    file: UploadFile = File(
+        ..., content_type=["image/jpeg", "image/png", "video/mp4", "video/x-msvideo"]
+    )
+):
     def chunks(iterable, size=10):
         iterator = iter(iterable)
         for first in iterator:
             yield chain([first], islice(iterator, size - 1))
 
-    task_id  = uuid.uuid4()
-
+    video_recognition_results = []
+    crops = []
     if file.content_type in ["video/mp4", "video/x-msvideo"]:
-        video_recognition_results = []
-        with tempfile.NamedTemporaryFile(suffix=Path(file.filename).suffix, delete=False) as temp_file:
+        with tempfile.NamedTemporaryFile(
+            suffix=Path(file.filename).suffix, delete=False
+        ) as temp_file:
             temp_file.write(await file.read())
             frames_generator = extract_frames_from_video(temp_file.name, n=5)
 
@@ -52,7 +65,37 @@ async def upload_file(
                 frames = [ImageConverter.pil_to_base64(frame) for frame in list(chunk)]
                 recognition_tasks = [recognize(frame) for frame in frames]
                 recognition_result = await asyncio.gather(*recognition_tasks)
+
+                recognition_result = [
+                    item for sublist in recognition_result for item in sublist
+                ]
                 video_recognition_results.extend(clean_result(recognition_result))
-        return video_recognition_results
+                for frame, recognized_result in zip(frame, recognized_result):
+                    if recognized_result:
+                        crop_face = crop_face_from_image(
+                            frame, recognized_result["bbox"]
+                        )
+                        crop_img_bytes = ImageConverter.pil_to_base64(crop_face)
+                        crops.append(
+                            EmotionDetectionResponse(
+                                img_bytes=crop_img_bytes,
+                                emotion=recognized_result["emotion"],
+                            )
+                        )
     else:
-        return clean_result(await recognize(b64encode((file.file.read())).decode("utf-8")))
+        recognition_result = await recognize(
+            b64encode((await file.read())).decode("utf-8")
+        )
+        logger.error(recognition_result)
+        for result in recognition_result:
+            if result:
+                img = Image.open(file.file)
+                crop_face = crop_face_from_image(img, result["bbox"])
+                crop_img_bytes = ImageConverter.pil_to_base64(crop_face)
+                crops.append(
+                    EmotionDetectionResponse(
+                        img_bytes=crop_img_bytes, emotion=result["emotion"]
+                    )
+                )
+
+    return crops

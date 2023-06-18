@@ -1,4 +1,4 @@
-fastapi
+fastapi==0.68.1
 uvicorn==0.13.1
 httpx
 ffmpeg-python
@@ -6,4 +6,4 @@ numpy
 python-multipart
 av
 loguru
-Pillow
+Pillow==9.4.0
