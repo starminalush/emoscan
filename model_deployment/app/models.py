@@ -1,14 +1,11 @@
-from uuid import uuid4
-
 import cv2
 import mlflow
 import numpy as np
 import onnxruntime as nx
-import ray
 import torch
 from deep_sort_realtime.deep_sort.track import Track
 from deep_sort_realtime.deepsort_tracker import DeepSort
-from facenet_pytorch import MTCNN
+from mtcnn import MTCNN
 from schemas import TrackerResult
 from ray import serve
 from aliases import InitialTrackerBbox, DetectionBbox
@@ -34,34 +31,28 @@ class EmotionRecognizer:
     def __call__(self, image: np.ndarray, bbox: DetectionBbox) -> str:
         bbox = [int(i) for i in bbox]
         face = image[bbox[1] : bbox[3], bbox[0] : bbox[2]]
-        if face.shape[0] > 0 and face.shape[1] >0:
-            face = cv2.resize(face, (224, 224), interpolation = cv2.INTER_AREA)
-            face = np.float32(face)
-            face = face.transpose(2, 0, 1)
-            face = face[np.newaxis, :]
+        face = cv2.resize(face, (224, 224), interpolation = cv2.INTER_AREA)
+        face = np.float32(face)
+        face = face.transpose(2, 0, 1)
+        face = face[np.newaxis, :]
 
-            input_name = self.ort_session.get_inputs()[0].name
-            ortvalue = nx.OrtValue.ortvalue_from_numpy(face, "cuda", 0)
-            cls, _, _ = self.ort_session.run(None, {input_name: ortvalue})
-            return self._idx_to_class[np.argmax(cls, 1)[0]]
-        else:
-            ray.logger.error(bbox)
-            return "undefined emotion"
+        input_name = self.ort_session.get_inputs()[0].name
+        ortvalue = nx.OrtValue.ortvalue_from_numpy(face, "cuda", 0)
+        cls, _, _ = self.ort_session.run(None, {input_name: ortvalue})
+        return self._idx_to_class[np.argmax(cls, 1)[0]]
 
 
 @serve.deployment(ray_actor_options={"num_cpus": 0, "num_gpus": 0.25})
 class FaceDetector:
     def __init__(self):
-        self.model: MTCNN = MTCNN(image_size=640, device=torch.device("cuda:0"))
+        self.model: MTCNN = MTCNN()
 
     def __call__(self, image: np.ndarray):
-        boxes, _ = self.model.detect(image)
-        if type(boxes) is np.ndarray:
-            boxes[boxes < 0] = 0
-            return [box.tolist() for box in boxes]
+        boxes, _ = self.model.detect_faces(image)
+        if len(boxes) > 0:
+            return [item['box'] for item in boxes]
         else:
-            return None
-
+            return []
 
 @serve.deployment(ray_actor_options={"num_cpus": 0, "num_gpus": 0.25})
 class Tracker:

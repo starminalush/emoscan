@@ -1,11 +1,12 @@
 import asyncio
+import os
 
 import numpy as np
 import ray
 from fastapi import FastAPI
 from models import EmotionRecognizer, FaceDetector, Tracker
 from ray import serve
-from schemas import Image, TrackerResult
+from schemas import Image, TrackerResult, RecognitionResult
 from utils import base64_to_numpy
 
 
@@ -26,27 +27,28 @@ class FER:
     async def detect(self, image: Image):
         image: np.ndarray = base64_to_numpy(image.img_bytes)
         bboxes = await (await self.face_detector.remote(image))
-        if not bboxes:
-            return {}
-        tracker_results: list[TrackerResult] = ray.get(
-            await self.tracker.remote(image, bboxes)
-        )
-
-        emotion_recognition_tasks = [
-            self.emotion_recognizer.remote(image, tracker_result.bbox)
-            for tracker_result in tracker_results
-        ]
-        emotions = ray.get(await asyncio.gather(*emotion_recognition_tasks))
-        return [
-            {"emotion": emotion, "track_id": item.track_id, "bbox": item.bbox}
-            for emotion, item in zip(emotions, tracker_results)
-        ]
+        ray.logger.error(bboxes)
+        if len(bboxes) == 0:
+            return []
+        else:
+            tracker_results: list[TrackerResult] = ray.get(
+                await self.tracker.remote(image, bboxes)
+            )
+            emotion_recognition_tasks = [
+                self.emotion_recognizer.remote(image, tracker_result.bbox)
+                for tracker_result in tracker_results
+            ]
+            emotions = ray.get(await asyncio.gather(*emotion_recognition_tasks))
+            return [
+                RecognitionResult(emotion=emotion, track_id =item.track_id, bbox=item.bbox)
+                for emotion, item in zip(emotions, tracker_results)
+            ]
 
 
 backend = FER.bind(
     FaceDetector.bind(),
     EmotionRecognizer.bind(
-        "s3://experiments/1/465e546c511f459196393bb26b978d3a/artifacts/onnx_model.onnx"
+        os.getenv("MODEL_S3_PATH")
     ),
     Tracker.bind(),
 )

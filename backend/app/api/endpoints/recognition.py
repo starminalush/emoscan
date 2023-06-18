@@ -36,7 +36,7 @@ def clean_result(emotion_recognition_result):
     return [
         item
         for item in emotion_recognition_result
-        if item and item["emotion"] != "undefined emotion"
+        if item
     ]
 
 
@@ -62,15 +62,17 @@ async def upload_file(
 
             for n, chunk in enumerate(chunks(frames_generator, 10)):
                 # todo: реализовать на стороне сервиса с моделями возможность обработки по батчам
-                frames = [ImageConverter.pil_to_base64(frame) for frame in list(chunk)]
+                initial_frames = list(chunk)
+                frames = [ImageConverter.pil_to_base64(frame) for frame in initial_frames]
                 recognition_tasks = [recognize(frame) for frame in frames]
-                recognition_result = await asyncio.gather(*recognition_tasks)
+                recognition_results = await asyncio.gather(*recognition_tasks)
 
-                recognition_result = [
-                    item for sublist in recognition_result for item in sublist
+                recognition_results = [
+                    item for sublist in recognition_results for item in sublist
                 ]
-                video_recognition_results.extend(clean_result(recognition_result))
-                for frame, recognized_result in zip(frame, recognized_result):
+                video_recognition_results.extend(clean_result(recognition_results))
+                for frame, recognized_result in zip(initial_frames, recognition_results):
+                    logger.error(recognized_result)
                     if recognized_result:
                         crop_face = crop_face_from_image(
                             frame, recognized_result["bbox"]
@@ -82,6 +84,7 @@ async def upload_file(
                                 emotion=recognized_result["emotion"],
                             )
                         )
+                        logger.error(recognized_result["emotion"])
     else:
         recognition_result = await recognize(
             b64encode((await file.read())).decode("utf-8")

@@ -45,14 +45,11 @@ services:
       - ./model_deployment/.env
 
     ports:
-      - "8000:8000"
+      - "${MODEL_DEPLOYMENT_PORT}:8000"
     command: serve run --host 0.0.0.0 main:backend
 
     networks:
       - internal-network
-
-
-
 
 networks:
   internal-network:
