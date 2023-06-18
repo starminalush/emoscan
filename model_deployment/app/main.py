@@ -5,7 +5,7 @@ import ray
 from fastapi import FastAPI
 from models import EmotionRecognizer, FaceDetector, Tracker
 from ray import serve
-from schemas import Image, RecognitionResult, TrackerResult
+from schemas import Image, TrackerResult
 from utils import base64_to_numpy
 
 
@@ -26,16 +26,11 @@ class FER:
     async def detect(self, image: Image):
         image: np.ndarray = base64_to_numpy(image.img_bytes)
         bboxes = await (await self.face_detector.remote(image))
-
         if not bboxes:
-            return []
-        ray.logger.info(image)
+            return {}
         tracker_results: list[TrackerResult] = ray.get(
             await self.tracker.remote(image, bboxes)
         )
-        for t in tracker_results:
-            ray.logger.info(t)
-            ray.logger.info(t.track_id)
 
         emotion_recognition_tasks = [
             self.emotion_recognizer.remote(image, tracker_result.bbox)

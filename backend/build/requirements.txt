@@ -6,4 +6,4 @@ numpy
 python-multipart
 av
 loguru
-opencv-python
+Pillow

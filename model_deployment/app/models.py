@@ -1,7 +1,10 @@
+from uuid import uuid4
+
 import cv2
 import mlflow
 import numpy as np
 import onnxruntime as nx
+import ray
 import torch
 from deep_sort_realtime.deep_sort.track import Track
 from deep_sort_realtime.deepsort_tracker import DeepSort
@@ -31,15 +34,19 @@ class EmotionRecognizer:
     def __call__(self, image: np.ndarray, bbox: DetectionBbox) -> str:
         bbox = [int(i) for i in bbox]
         face = image[bbox[1] : bbox[3], bbox[0] : bbox[2]]
-        face = cv2.resize(face, (224, 224))
-        face = np.float32(face)
-        face = face.transpose(2, 0, 1)
-        face = face[np.newaxis, :]
+        if face.shape[0] > 0 and face.shape[1] >0:
+            face = cv2.resize(face, (224, 224), interpolation = cv2.INTER_AREA)
+            face = np.float32(face)
+            face = face.transpose(2, 0, 1)
+            face = face[np.newaxis, :]
 
-        input_name = self.ort_session.get_inputs()[0].name
-        ortvalue = nx.OrtValue.ortvalue_from_numpy(face, "cuda", 0)
-        cls, _, _ = self.ort_session.run(None, {input_name: ortvalue})
-        return self._idx_to_class[np.argmax(cls, 1)[0]]
+            input_name = self.ort_session.get_inputs()[0].name
+            ortvalue = nx.OrtValue.ortvalue_from_numpy(face, "cuda", 0)
+            cls, _, _ = self.ort_session.run(None, {input_name: ortvalue})
+            return self._idx_to_class[np.argmax(cls, 1)[0]]
+        else:
+            ray.logger.error(bbox)
+            return "undefined emotion"
 
 
 @serve.deployment(ray_actor_options={"num_cpus": 0, "num_gpus": 0.25})
@@ -49,7 +56,11 @@ class FaceDetector:
 
     def __call__(self, image: np.ndarray):
         boxes, _ = self.model.detect(image)
-        return boxes.tolist() if type(boxes) is np.ndarray else None
+        if type(boxes) is np.ndarray:
+            boxes[boxes < 0] = 0
+            return [box.tolist() for box in boxes]
+        else:
+            return None
 
 
 @serve.deployment(ray_actor_options={"num_cpus": 0, "num_gpus": 0.25})
