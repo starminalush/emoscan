@@ -1,7 +1,10 @@
 import asyncio
+import base64
 import tempfile
 import uuid
 from datetime import datetime
+from io import BytesIO
+
 from PIL import Image
 from base64 import b64encode
 from itertools import chain, islice
@@ -14,9 +17,8 @@ from loguru import logger
 from crud.history import write_logs
 from sqlalchemy.ext.asyncio import AsyncSession
 from utils import ImageConverter, extract_frames_from_video
-from api.deps import get_db, get_s3_client
+from api.deps import get_db, get_c3_client
 
-from backend.core.minio.s3_client import S3Client
 
 router = APIRouter()
 
@@ -34,24 +36,24 @@ async def recognize(img_bytes):
         return {}
 
 
-async def process_frame(db: AsyncSession, img_bytes, task_id, s3_client: S3Client):
+async def process_frame(db: AsyncSession, img_bytes, task_id, s3_client):
     recognition_result = await recognize(img_bytes)
-
     image_uuid = uuid.uuid4()
-    current_date = datetime.today().strftime('%Y-%m-%d')
+    current_date = datetime.today()
+    for res in recognition_result:
+        history_data = {
+            "task_id": task_id,
+            "emotion": res['emotion'],
+            "bbox": res["bbox"],
+            "track_id": res["track_id"],
+            "image_uuid": image_uuid,
+            "datetime": current_date
+        }
+        await write_logs(db, history_data)
 
-    history_data = {
-        "task_id": task_id,
-        "emotion": recognition_result['emotion'],
-        "bbox": recognition_result["bbox"],
-        "track_id": recognition_result["track_id"],
-        "image_uuid": image_uuid,
-        "datetime": current_date
-    }
-    await write_logs(db, **history_data)
-
-    image_path = f"{current_date}/{str(task_id)}/{image_uuid}.jpg"
-    await s3_client.write_image(image_bytes=img_bytes, image_path=image_path)
+    image_path = f"{current_date.strftime('%Y-%m-%d')}/{str(task_id)}/{image_uuid}.jpg"
+    image_bytes = base64.b64decode(img_bytes)
+    await s3_client.upload_fileobj(BytesIO(image_bytes), "logs",  image_path)
 
 
 def crop_face_from_image(frame: Image, bbox):
@@ -72,7 +74,7 @@ async def upload_file(
             ..., content_type=["image/jpeg", "image/png", "video/mp4", "video/x-msvideo"]
         ),
         db=Depends(get_db),
-        s3_client=Depends(get_s3_client)
+        s3_client=Depends(get_c3_client)
 ):
     def chunks(iterable, size=10):
         iterator = iter(iterable)

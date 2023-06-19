@@ -2,6 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 
 from api.api import router
+from core.db.database import Base, engine
 
 
 def create_app():
@@ -11,6 +12,17 @@ def create_app():
 
 
 app = create_app()
+
+
+@app.on_event("startup")
+async def startup_event():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    await engine.dispose()
 
 
 if __name__ == "__main__":
