@@ -26,8 +26,7 @@ Cервис для инференса нейросетевых моделей н
 Примечание: если на моменте билда появляется ошибка failed to fetch anonymous token: unexpected status: 401 Unauthorized, выполните следующую команду:
 `sudo docker pull  nvcr.io/nvidia/cuda:11.6.0-cudnn8-devel-ubuntu20.04` и снова запустите `sudo docker compose up --build -d model_deployment`
  
-
-
+Контейнер весит почти 20гб, потому что внутри у него анаконда
 
 
 

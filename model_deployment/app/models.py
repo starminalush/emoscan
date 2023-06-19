@@ -5,7 +5,7 @@ import onnxruntime as nx
 import torch
 from deep_sort_realtime.deep_sort.track import Track
 from deep_sort_realtime.deepsort_tracker import DeepSort
-from mtcnn import MTCNN
+from facenet_pytorch import MTCNN
 from schemas import TrackerResult
 from ray import serve
 from aliases import InitialTrackerBbox, DetectionBbox
@@ -31,7 +31,7 @@ class EmotionRecognizer:
     def __call__(self, image: np.ndarray, bbox: DetectionBbox) -> str:
         bbox = [int(i) for i in bbox]
         face = image[bbox[1] : bbox[3], bbox[0] : bbox[2]]
-        face = cv2.resize(face, (224, 224), interpolation = cv2.INTER_AREA)
+        face = cv2.resize(face, (224, 224))
         face = np.float32(face)
         face = face.transpose(2, 0, 1)
         face = face[np.newaxis, :]
@@ -45,14 +45,12 @@ class EmotionRecognizer:
 @serve.deployment(ray_actor_options={"num_cpus": 0, "num_gpus": 0.25})
 class FaceDetector:
     def __init__(self):
-        self.model: MTCNN = MTCNN()
+        self.model: MTCNN = MTCNN(image_size=640, device=torch.device("cuda:0"))
 
     def __call__(self, image: np.ndarray):
-        boxes, _ = self.model.detect_faces(image)
-        if len(boxes) > 0:
-            return [item['box'] for item in boxes]
-        else:
-            return []
+        boxes, _ = self.model.detect(image)
+        return boxes.tolist() if type(boxes) is np.ndarray else None
+
 
 @serve.deployment(ray_actor_options={"num_cpus": 0, "num_gpus": 0.25})
 class Tracker:
