@@ -6,7 +6,7 @@ from streamlit.source_util import _on_pages_changed, get_pages
 from streamlit_extras.switch_page_button import switch_page
 
 DEFAULT_PAGE = "главная.py"
-SECOND_PAGE_NAME = "Распознавание по изображению"
+SECOND_PAGE_NAME = "image recognition"
 
 
 def get_all_pages():
