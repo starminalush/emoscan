@@ -13,3 +13,6 @@ class Event(Base):
     bbox = Column(ARRAY(Integer))
     image_uuid = Column(UUID(as_uuid=True))
     task_id = Column(UUID(as_uuid=True))
+    frame_number = Column(
+        Integer, nullable=True, comment="Порядковый номер фрейма для видео"
+    )
