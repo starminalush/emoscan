@@ -4,7 +4,7 @@ services:
     build: ./frontend/build
 
     volumes:
-      - .frontend/app:/app
+      - ./frontend/app:/app
 
     restart: always
     env_file:

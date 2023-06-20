@@ -18,6 +18,7 @@ from crud.history import write_logs
 from sqlalchemy.ext.asyncio import AsyncSession
 from utils import ImageConverter, extract_frames_from_video
 from api.deps import get_db, get_c3_client
+from schemas.emotion_detection import EmotionDetectionResponse
 
 
 router = APIRouter()
@@ -40,6 +41,7 @@ async def process_frame(db: AsyncSession, img_bytes, task_id, s3_client):
     recognition_result = await recognize(img_bytes)
     image_uuid = uuid.uuid4()
     current_date = datetime.today()
+    result = []
     for res in recognition_result:
         history_data = {
             "task_id": task_id,
@@ -51,10 +53,12 @@ async def process_frame(db: AsyncSession, img_bytes, task_id, s3_client):
         }
         await write_logs(db, history_data)
 
+        result.append(EmotionDetectionResponse(bbox=res["bbox"], emotion=res["emotion"]))
+
     image_path = f"{current_date.strftime('%Y-%m-%d')}/{str(task_id)}/{image_uuid}.jpg"
     image_bytes = base64.b64decode(img_bytes)
     await s3_client.upload_fileobj(BytesIO(image_bytes), "logs",  image_path)
-
+    return result
 
 def crop_face_from_image(frame: Image, bbox):
     return frame.crop(box=bbox)
@@ -95,9 +99,10 @@ async def upload_file(
                 frames = [ImageConverter.pil_to_base64(frame) for frame in initial_frames]
                 recognition_tasks = [process_frame(db, frame, task_id, s3_client) for frame in frames]
                 _ = await asyncio.gather(*recognition_tasks)
+                #тут мы ничего не возврашаем, тут копим результаты и пишем видео назад
 
     else:
-        await process_frame(db,
+        return await process_frame(db,
                             b64encode((await file.read())).decode("utf-8"),
                             task_id,
                             s3_client

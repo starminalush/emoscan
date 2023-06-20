@@ -2,5 +2,5 @@ from pydantic import BaseModel
 
 
 class EmotionDetectionResponse(BaseModel):
-    img_bytes: str
+    bbox: list[int]
     emotion: str
