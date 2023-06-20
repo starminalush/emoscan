@@ -11,7 +11,7 @@
 ---------------------
  - Frontend
  - Backend
- - Model_deployment
+ - [Model_deployment](https://github.com/starminalush/mfdp-2023-mvp/tree/backend/model_deployment)
 
 
 [Макеты Figma](https://www.figma.com/file/UDO1ksG3vVUUHI131DGGCC/MFDP?type=design&node-id=0%3A1&t=tSmyiOsMtYIueP19-1)
