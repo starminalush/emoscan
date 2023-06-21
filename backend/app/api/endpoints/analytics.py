@@ -1,14 +1,21 @@
-from fastapi import APIRouter, Depends
-
+from fastapi import APIRouter, Depends, Query
+from datetime import date
 from api.deps import get_db
-from crud.analytics import get_stats_by_date, get_stats_by_student_id
+from loguru import logger
+from crud.analytics import get_stats_by_range_of_date, get_stats_by_student_id
+from schemas.analytics import AnalyticsPerRangeOfDates
 
 router = APIRouter()
 
 
-@router.get("/{date}")
-async def get_analytics_by_date(date: str, db=Depends(get_db)):
-    return await get_stats_by_date(db=db, date=date)
+@router.get("/dates", response_model=list[AnalyticsPerRangeOfDates | None])
+async def get_analytics_by_date(
+    date_start: date = Query(...), date_end: date = Query(...), db=Depends(get_db)
+):
+    result = await get_stats_by_range_of_date(
+        db=db, start_date=date_start, end_date=date_end
+    )
+    return result if result else []
 
 
 @router.get("/{student_id}")

@@ -31,10 +31,10 @@ if video_file is not None:
         )
         c2.markdown(
             f"""
-        ПРЕВАЛИРУЮЩЕЕ НАСТРОЕНИЕ: {max_emotion}\n
-    ДОЛИ ЭМОЦИЙ ПО ВРЕМЕНИ:\n
-    \n
-    {str(response["emotion_proportion"])}
-        """
+            ПРЕВАЛИРУЮЩЕЕ НАСТРОЕНИЕ: {max_emotion}\n
+            ДОЛИ ЭМОЦИЙ ПО ВРЕМЕНИ:\n
+            \n
+            {str(response["emotion_proportion"])}
+            """
         )
         c2.button("Скачать видео с метками эмоций")

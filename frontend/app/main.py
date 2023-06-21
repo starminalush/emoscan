@@ -5,7 +5,7 @@ import streamlit as st
 from streamlit.source_util import _on_pages_changed, get_pages
 from streamlit_extras.switch_page_button import switch_page
 
-DEFAULT_PAGE = "главная.py"
+DEFAULT_PAGE = "main.py"
 SECOND_PAGE_NAME = "image recognition"
 
 

@@ -3,4 +3,4 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 COPY . /app
 WORKDIR /app
-CMD ["streamlit","run", "главная.py", "--server.port", "8080"]
+CMD ["streamlit","run", "main.py", "--server.port", "8080"]
