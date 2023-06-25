@@ -11,7 +11,7 @@ async def get_stats_by_range_of_date(
 ):
     sql_statement = (
         select(cast(Event.datetime, Date), Event.emotion, func.count(Event.emotion))
-        .where(Event.datetime.between(start_date, end_date))
+        .where(cast(Event.datetime, Date).between(start_date, end_date))
         .group_by(cast(Event.datetime, Date), Event.emotion)
     )
 
@@ -22,6 +22,11 @@ async def get_stats_by_range_of_date(
         return []
 
 
-async def get_stats_by_student_id(db: AsyncSession, student_id: int):
-    sql_statement = select(Event).where(Event.track_id == student_id)
-    return await db.execute(sql_statement).scalars().all()
+async def get_stats_by_student_id(db: AsyncSession, student_id: int, start_date, end_date):
+    sql_statement = select(Event.emotion, func.count(Event.emotion), cast(Event.datetime,  Date)).where(Event.track_id == student_id, cast(Event.datetime, Date).between(start_date, end_date)).group_by(cast(Event.datetime, Date), Event.emotion)
+    result = (await db.execute(sql_statement)).fetchall()
+
+    if result:
+        return [res._asdict() for res in result]
+    else:
+         return []

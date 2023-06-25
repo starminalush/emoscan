@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 from datetime import date
 from api.deps import get_db
-from loguru import logger
 from crud.analytics import get_stats_by_range_of_date, get_stats_by_student_id
 from schemas.analytics import AnalyticsPerRangeOfDates
 
@@ -19,5 +18,5 @@ async def get_analytics_by_date(
 
 
 @router.get("/{student_id}")
-async def get_analytics_by_student(student_id: str, db=Depends(get_db)):
-    return await get_stats_by_student_id(db=db, student_id=student_id)
+async def get_analytics_by_student(student_id: int,   date_start: date = Query(...), date_end: date = Query(...), db=Depends(get_db)):
+    return await get_stats_by_student_id(db=db, student_id=student_id, start_date=date_start, end_date=date_end)

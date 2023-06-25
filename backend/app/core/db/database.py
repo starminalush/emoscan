@@ -12,7 +12,7 @@ PORT = getenv("POSTGRES_PORT")
 DB = getenv("POSTGRES_DB")
 SQLALCHEMY_DATABASE_URL = f"postgresql+asyncpg://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}"
 
-engine: AsyncEngine = create_async_engine(SQLALCHEMY_DATABASE_URL)
+engine: AsyncEngine = create_async_engine(SQLALCHEMY_DATABASE_URL, echo=True)
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
