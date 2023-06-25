@@ -1,7 +1,6 @@
 from os import getenv
 
 import pandas as pd
-from loguru import logger
 import streamlit as st
 import requests
 import plotly.graph_objects as go
