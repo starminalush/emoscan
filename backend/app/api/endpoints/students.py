@@ -4,10 +4,10 @@ from crud.student import get_all_students
 from api.deps import get_db, get_c3_client
 from schemas.students import Student
 from sqlalchemy.ext.asyncio import AsyncSession
+import aioboto3
 from loguru import logger
 
 router = APIRouter()
-
 
 @router.get("/", response_model=list[Student | None])
 async def get_students(
@@ -22,12 +22,11 @@ async def get_students(
     result = []
     if all_students:
         for t in all_students:
-            # формируем ссылку на s3
             image_path = f"{t['datetime'].strftime('%Y-%m-%d')}/{str(t['task_id'])}/{t['image_uuid']}.jpg"
             url = await s3_client.generate_presigned_url(
                 "get_object",
                 Params={"Bucket": "logs", "Key": image_path},
-                ExpiresIn=400,
+                ExpiresIn=36000,
             )
-            result.append(Student(track_id=t["track_id"], image_url=url))
+            result.append(Student(track_id=t["track_id"], image_url=url, bbox=t["bbox"]))
     return result

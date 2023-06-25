@@ -3,6 +3,7 @@ from fastapi import FastAPI
 
 from api.api import router
 from core.db.database import Base, engine
+from fastapi.middleware.cors import  CORSMiddleware
 
 
 def create_app():
@@ -12,7 +13,13 @@ def create_app():
 
 
 app = create_app()
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 async def startup_event():
