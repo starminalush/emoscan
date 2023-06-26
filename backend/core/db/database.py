@@ -4,7 +4,6 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engin
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-
 USER = getenv("POSTGRES_USER")
 PASSWORD = getenv("POSTGRES_PASSWORD")
 HOST = getenv("POSTGRES_HOST")

@@ -2,6 +2,7 @@ from os import getenv
 from typing import Generator
 
 import aioboto3
+
 from core.db.database import SessionLocal
 
 

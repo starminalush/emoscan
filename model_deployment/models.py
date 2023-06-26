@@ -17,9 +17,7 @@ from schemas import TrackerResult
 class EmotionRecognizer:
     def __init__(self, model_uri):
         local_path = mlflow.artifacts.download_artifacts(model_uri)
-        self.ort_session = nx.InferenceSession(
-            local_path, providers=["CUDAExecutionProvider"]
-        )
+        self.ort_session = nx.InferenceSession(local_path, providers=["CUDAExecutionProvider"])
         self._idx_to_class: dict[int, str] = {
             0: "angry",
             1: "disgust",
@@ -68,13 +66,9 @@ class Tracker:
     def __init__(self):
         self.model: DeepSort = DeepSort(max_age=5, embedder="torchreid")
 
-    def __call__(
-        self, frame: np.ndarray, bboxes: list[DetectionBbox]
-    ) -> list[TrackerResult]:
+    def __call__(self, frame: np.ndarray, bboxes: list[DetectionBbox]) -> list[TrackerResult]:
         tracker_bboxes: InitialTrackerBbox = [[bbox, 0, 0] for bbox in bboxes]
-        tracks: list[Track] = self.model.update_tracks(
-            raw_detections=tracker_bboxes, frame=frame
-        )
+        tracks: list[Track] = self.model.update_tracks(raw_detections=tracker_bboxes, frame=frame)
         return [
             TrackerResult(
                 track_id=track.track_id,

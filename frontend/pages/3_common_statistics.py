@@ -8,9 +8,7 @@ import streamlit as st
 
 
 def _get_analytics(start_date: date, end_date: date):
-    result = requests.get(
-        f"{getenv('BACKEND_URI')}/analytics?date_start={start_date}&date_end={end_date}"
-    ).json()
+    result = requests.get(f"{getenv('BACKEND_URI')}/analytics?date_start={start_date}&date_end={end_date}").json()
     return result
 
 

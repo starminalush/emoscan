@@ -1,4 +1,4 @@
-from sqlalchemy import select, distinct
+from sqlalchemy import distinct, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.db.models import Event

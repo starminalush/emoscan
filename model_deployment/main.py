@@ -16,9 +16,7 @@ app = FastAPI()
 @serve.deployment
 @serve.ingress(app)
 class FER:
-    def __init__(
-        self, face_detector_handler, emotion_recognition_handler, tracker_handler
-    ):
+    def __init__(self, face_detector_handler, emotion_recognition_handler, tracker_handler):
         self.face_detector = face_detector_handler
         self.emotion_recognizer = emotion_recognition_handler
         self.tracker = tracker_handler
@@ -31,19 +29,14 @@ class FER:
         if not bboxes:
             return []
         else:
-            tracker_results: list[TrackerResult] = ray.get(
-                await self.tracker.remote(image, bboxes)
-            )
+            tracker_results: list[TrackerResult] = ray.get(await self.tracker.remote(image, bboxes))
             ray.logger.info(f"tracker bboxes: {tracker_results}")
             emotion_recognition_tasks = [
-                self.emotion_recognizer.remote(image, tracker_result.bbox)
-                for tracker_result in tracker_results
+                self.emotion_recognizer.remote(image, tracker_result.bbox) for tracker_result in tracker_results
             ]
             emotions = ray.get(await asyncio.gather(*emotion_recognition_tasks))
             return [
-                RecognitionResult(
-                    emotion=emotion, track_id=item.track_id, bbox=item.bbox
-                )
+                RecognitionResult(emotion=emotion, track_id=item.track_id, bbox=item.bbox)
                 for emotion, item in zip(emotions, tracker_results)
             ]
 

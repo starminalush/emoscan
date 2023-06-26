@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from api.endpoints import recognition, analytics, students
+from api.endpoints import analytics, recognition, students
 
 router = APIRouter()
 

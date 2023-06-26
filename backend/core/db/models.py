@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, Integer, Text, ARRAY
+from sqlalchemy import ARRAY, Column, DateTime, Integer, Text
 from sqlalchemy.dialects.postgresql import UUID
 
 from core.db.database import Base
@@ -13,6 +13,4 @@ class Event(Base):
     bbox = Column(ARRAY(Integer))
     image_uuid = Column(UUID(as_uuid=True))
     task_id = Column(UUID(as_uuid=True))
-    frame_number = Column(
-        Integer, nullable=True, comment="Порядковый номер фрейма для видео"
-    )
+    frame_number = Column(Integer, nullable=True, comment="Порядковый номер фрейма для видео")

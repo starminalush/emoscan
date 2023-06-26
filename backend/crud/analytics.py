@@ -1,14 +1,12 @@
 from datetime import datetime
 
-from sqlalchemy import select, func, cast, Date
-
-from core.db.models import Event
+from sqlalchemy import Date, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.db.models import Event
 
-async def get_stats_by_range_of_date(
-    db: AsyncSession, start_date: datetime, end_date: datetime
-):
+
+async def get_stats_by_range_of_date(db: AsyncSession, start_date: datetime, end_date: datetime):
     sql_statement = (
         select(cast(Event.datetime, Date), Event.emotion, func.count(Event.emotion))
         .where(cast(Event.datetime, Date).between(start_date, end_date))
@@ -22,9 +20,7 @@ async def get_stats_by_range_of_date(
         return []
 
 
-async def get_stats_by_student_id(
-    db: AsyncSession, student_id: int, start_date, end_date
-):
+async def get_stats_by_student_id(db: AsyncSession, student_id: int, start_date, end_date):
     sql_statement = (
         select(Event.emotion, func.count(Event.emotion), cast(Event.datetime, Date))
         .where(

@@ -22,17 +22,10 @@ if video_file is not None:
     c1.video(video_file, start_time=5)
     c1.text(video_file.name)
     with st.spinner("Распознаем..."):
-        response = recognize(
-            video_file.read(), uri=f"{getenv('BACKEND_URI')}/recognize/video"
-        )
+        response = recognize(video_file.read(), uri=f"{getenv('BACKEND_URI')}/recognize/video")
     if response:
-        max_emotion = max(
-            response["emotion_proportion"], key=response["emotion_proportion"].get
-        )
-        result = "\n".join(
-            f"{key}: {value:.2f}%"
-            for key, value in response["emotion_proportion"].items()
-        )
+        max_emotion = max(response["emotion_proportion"], key=response["emotion_proportion"].get)
+        result = "\n".join(f"{key}: {value:.2f}%" for key, value in response["emotion_proportion"].items())
         c2.write(
             f"""
             ПРЕВАЛИРУЮЩЕЕ НАСТРОЕНИЕ: {max_emotion}\n

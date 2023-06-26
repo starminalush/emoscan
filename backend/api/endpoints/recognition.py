@@ -1,7 +1,7 @@
 import asyncio
-from collections import Counter
 import os
 import tempfile
+from collections import Counter
 from dataclasses import asdict
 from datetime import datetime
 from itertools import chain, islice
@@ -30,20 +30,14 @@ async def recognize(img_bytes) -> list[EmotionRecognitionResponse | None]:
     try:
         async with httpx.AsyncClient() as client:
             body = {"img_bytes": img_bytes}
-            response = await client.post(
-                url=os.getenv("MODEL_DEPLOYMENT_URI"), json=body
-            )
+            response = await client.post(url=os.getenv("MODEL_DEPLOYMENT_URI"), json=body)
             return response.json()
     except Exception:
         return []
 
 
-async def process_frame_pipeline(
-    img_bytes: str, task_id: UUID, db: AsyncSession, s3_client, frame_number=None
-):
-    emotion_recognition_results: list[
-        EmotionRecognitionResponse | None
-    ] = await recognize(img_bytes=img_bytes)
+async def process_frame_pipeline(img_bytes: str, task_id: UUID, db: AsyncSession, s3_client, frame_number=None):
+    emotion_recognition_results: list[EmotionRecognitionResponse | None] = await recognize(img_bytes=img_bytes)
     if emotion_recognition_results:
         image_uuid: UUID = uuid4()
         current_date: datetime = datetime.today()
@@ -59,12 +53,8 @@ async def process_frame_pipeline(
             )
             await write_logs(db=db, event=asdict(event))
 
-        image_path = (
-            f"{current_date.strftime('%Y-%m-%d')}/{str(task_id)}/{image_uuid}.jpg"
-        )
-        await s3_client.upload_fileobj(
-            cnvt_image_to_bytes(img_bytes), "logs", image_path
-        )
+        image_path = f"{current_date.strftime('%Y-%m-%d')}/{str(task_id)}/{image_uuid}.jpg"
+        await s3_client.upload_fileobj(cnvt_image_to_bytes(img_bytes), "logs", image_path)
 
         return [
             EmotionRecognitionResponseImage(bbox=item["bbox"], emotion=item["emotion"])
@@ -103,9 +93,7 @@ async def upload_video(
 
     task_id: UUID = uuid4()
     counter = Counter()
-    with tempfile.NamedTemporaryFile(
-        suffix=Path(file.filename).suffix, delete=False
-    ) as temp_file:
+    with tempfile.NamedTemporaryFile(suffix=Path(file.filename).suffix, delete=False) as temp_file:
         temp_file.write(await file.read())
     frames_generator = extract_frames_from_video(temp_file.name, n=5)
     for n, chunk in enumerate(chunks(frames_generator, 10)):
@@ -122,15 +110,9 @@ async def upload_video(
             for idx, frame in enumerate(frames, 1)
         ]
         recognition_results = await asyncio.gather(*recognition_tasks)
-        recognition_results = [
-            item for sublist in recognition_results for item in sublist
-        ]
+        recognition_results = [item for sublist in recognition_results for item in sublist]
         counter.update([data.emotion for data in recognition_results])
     if counter.total() > 0:
-        emotion_percentages = {
-            item: count / counter.total() * 100 for item, count in counter.items()
-        }
-        return EmotionRecognitionResponseVideo(
-            task_id=str(task_id), emotion_proportion=emotion_percentages
-        )
+        emotion_percentages = {item: count / counter.total() * 100 for item, count in counter.items()}
+        return EmotionRecognitionResponseVideo(task_id=str(task_id), emotion_proportion=emotion_percentages)
     return {}
