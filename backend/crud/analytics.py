@@ -1,26 +1,28 @@
-from datetime import datetime
+from datetime import date
 
 from sqlalchemy import Date, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.db.models import Event
+from schemas.analytics import AnalyticsByRangeOfDates, AnalyticsByStudentID
 
 
-async def get_stats_by_range_of_date(db: AsyncSession, start_date: datetime, end_date: datetime):
+async def get_analytics_by_range_of_dates(
+    db: AsyncSession, date_start: date, date_end: date
+) -> list[AnalyticsByRangeOfDates | None]:
     sql_statement = (
         select(cast(Event.datetime, Date), Event.emotion, func.count(Event.emotion))
-        .where(cast(Event.datetime, Date).between(start_date, end_date))
+        .where(cast(Event.datetime, Date).between(date_start, date_end))
         .group_by(cast(Event.datetime, Date), Event.emotion)
     )
 
-    result = (await db.execute(sql_statement)).fetchall()
-    if result:
-        return [res._asdict() for res in result]
-    else:
-        return []
+    analytics_by_date = (await db.execute(sql_statement)).scalars().all()
+    return analytics_by_date if analytics_by_date else []
 
 
-async def get_stats_by_student_id(db: AsyncSession, student_id: int, start_date, end_date):
+async def get_analytics_by_student_id(
+    db: AsyncSession, student_id: int, start_date: date, end_date: date
+) -> list[AnalyticsByStudentID | None]:
     sql_statement = (
         select(Event.emotion, func.count(Event.emotion), cast(Event.datetime, Date))
         .where(
@@ -29,9 +31,6 @@ async def get_stats_by_student_id(db: AsyncSession, student_id: int, start_date,
         )
         .group_by(cast(Event.datetime, Date), Event.emotion)
     )
-    result = (await db.execute(sql_statement)).fetchall()
+    statistics_by_student = (await db.execute(sql_statement)).scalars().all()
 
-    if result:
-        return [res._asdict() for res in result]
-    else:
-        return []
+    return statistics_by_student if statistics_by_student else []

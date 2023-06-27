@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.deps import get_c3_client, get_db
+from api.deps import get_db
 from crud.student import get_all_students
 from schemas.students import Student
 

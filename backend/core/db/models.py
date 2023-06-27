@@ -7,10 +7,12 @@ from core.db.database import Base
 class Event(Base):
     __tablename__ = "events"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    track_id = Column(Integer)
-    datetime = Column(DateTime)
-    emotion = Column(Text)
-    bbox = Column(ARRAY(Integer))
-    image_uuid = Column(UUID(as_uuid=True))
-    task_id = Column(UUID(as_uuid=True))
-    frame_number = Column(Integer, nullable=True, comment="Порядковый номер фрейма для видео")
+    track_id = Column(Integer, comment="TrackID aka studentID")
+    datetime = Column(DateTime, comment="Event datetime")
+    emotion = Column(Text, comment="Face emotion")
+    bbox = Column(ARRAY(Integer), comment="Face bbox")
+    image_uuid = Column(UUID(as_uuid=True), comment="Image name in S3")
+    task_id = Column(UUID(as_uuid=True), comment="TaskID aka lessonID")
+    frame_number = Column(
+        Integer, nullable=True, comment="Порядковый номер фрейма для видео"
+    )
