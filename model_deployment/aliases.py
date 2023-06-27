@@ -1,2 +1,2 @@
-DetectionBbox = list[int | float]
-InitialTrackerBbox = list[DetectionBbox, int, int]
+DetectionBbox = tuple[int, int, int, int]
+InitialTrackerBbox = tuple[DetectionBbox, int, int]

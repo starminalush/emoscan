@@ -4,7 +4,7 @@ Model deployment
 ---------------------
 Cервис для инференса нейросетевых моделей на основе [Ray Serve](https://docs.ray.io/en/latest/serve/index.html). 
 Модели:
- - [MTCNN](https://pypi.org/project/mtcnn/) для детекции лиц
+ - [MTCNN](https://pypi.org/project/facenet-pytorch/) для детекции лиц
  - [DeepSort](https://pypi.org/project/deep-sort-realtime/) для трекинга лиц
  - [EmotionRecognition](https://github.com/starminalush/mfdp-2023) - наша обученная модель распознавания лиц на основе DAN
 
@@ -20,8 +20,8 @@ Cервис для инференса нейросетевых моделей н
 
 Описание запуска модуля
 ---------------------
- - заполнить .env файл в model_deployment/.env
- - заполнить .env файл в корне проекта.
+ - заполнить .env файл в model_deployment/.env по примеру model_deployment/.env.template
+ - заполнить .env файл в корне проекта по примеру .env.template
  - `sudo docker compose up --build -d model_deployment`. 
 Примечание: если на моменте билда появляется ошибка failed to fetch anonymous token: unexpected status: 401 Unauthorized, выполните следующую команду:
 `sudo docker pull  nvcr.io/nvidia/cuda:11.6.0-cudnn8-devel-ubuntu20.04` и снова запустите `sudo docker compose up --build -d model_deployment`

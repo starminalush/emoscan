@@ -30,11 +30,9 @@ services:
     env_file:
       - .env
       - ./model_deployment/.env
-
     ports:
       - "${MODEL_DEPLOYMENT_PORT}:8000"
-    command: serve run --host 0.0.0.0 main:backend
-
+    command: serve run --host 0.0.0.0 main:app
     networks:
       - internal-network
 

@@ -1,10 +1,12 @@
-import base64
+def postprocess_bbox(bbox: list[int]) -> list[int | None]:
+    """Postprocess face detector or tracker bbox.
 
-import cv2
-import numpy as np
+    Args:
+        bbox: Initial bbox.
 
-
-def base64_to_numpy(image: str) -> np.ndarray:
-    im_bytes = base64.b64decode(image)
-    im_arr = np.frombuffer(im_bytes, dtype=np.uint8)  # im_arr is one-dim Numpy array
-    return cv2.imdecode(im_arr, flags=cv2.IMREAD_COLOR)
+    Returns:
+        Postprocessed bbox.
+    """
+    if bbox[0] < bbox[2] and bbox[1] < bbox[3]:
+        return [0 if coord < 0 else coord for coord in bbox]
+    return []

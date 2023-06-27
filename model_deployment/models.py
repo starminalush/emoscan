@@ -2,22 +2,24 @@ import cv2
 import mlflow
 import numpy as np
 import onnxruntime as nx
-import ray
 import torch
 from deep_sort_realtime.deep_sort.track import Track
 from deep_sort_realtime.deepsort_tracker import DeepSort
-from facenet_pytorch import MTCNN
+from facenet_pytorch.models.mtcnn import MTCNN
 from ray import serve
 
 from aliases import DetectionBbox, InitialTrackerBbox
 from schemas import TrackerResult
+from utils import postprocess_bbox
 
 
 @serve.deployment(ray_actor_options={"num_cpus": 0, "num_gpus": 0.25})
 class EmotionRecognizer:
     def __init__(self, model_uri):
-        local_path = mlflow.artifacts.download_artifacts(model_uri)
-        self.ort_session = nx.InferenceSession(local_path, providers=["CUDAExecutionProvider"])
+        local_path: str = mlflow.artifacts.download_artifacts(model_uri)
+        self.ort_session = nx.InferenceSession(
+            local_path, providers=["CUDAExecutionProvider"]
+        )
         self._idx_to_class: dict[int, str] = {
             0: "angry",
             1: "disgust",
@@ -29,7 +31,16 @@ class EmotionRecognizer:
         }
 
     def __call__(self, image: np.ndarray, bbox: DetectionBbox) -> str:
-        bbox = [int(i) for i in bbox]
+        """Classify facial expressions.
+
+        Args:
+            image: Input image(full).
+            bbox: Face bbox.
+
+        Returns:
+            Facial expression label.
+        """
+        bbox = [int(coord) for coord in bbox]
         face = image[bbox[1] : bbox[3], bbox[0] : bbox[2]]
         face = cv2.resize(face, (224, 224))
         face = np.float32(face)
@@ -38,8 +49,8 @@ class EmotionRecognizer:
 
         input_name = self.ort_session.get_inputs()[0].name
         ortvalue = nx.OrtValue.ortvalue_from_numpy(face, "cuda", 0)
-        cls, _, _ = self.ort_session.run(None, {input_name: ortvalue})
-        return self._idx_to_class[np.argmax(cls, 1)[0]]
+        label, _, _ = self.ort_session.run(None, {input_name: ortvalue})
+        return self._idx_to_class[np.argmax(label, 1)[0]]
 
 
 @serve.deployment(ray_actor_options={"num_cpus": 0, "num_gpus": 0.25})
@@ -48,17 +59,22 @@ class FaceDetector:
         self.model: MTCNN = MTCNN(image_size=640, device=torch.device("cuda:0"))
 
     def __call__(self, image: np.ndarray):
-        try:
-            boxes, _ = self.model.detect(image)
-            result_boxes = []
-            if type(boxes) is np.ndarray:
-                for box in boxes:
-                    if not (box[1] >= box[3] or box[0] >= box[2]):
-                        result_boxes.append([0 if i < 0 else i for i in box])
-                return result_boxes
-            return None
-        except Exception as err:
-            return None
+        """Detect faces on image.
+
+        Args:
+            image: Input image(full).
+
+        Returns:
+            List of faces' bboxes.
+        """
+        bboxes, _ = self.model.detect(image)
+        if isinstance(bboxes, np.ndarray):
+            return [
+                postprocessed_bbox
+                for bbox in bboxes
+                if (postprocessed_bbox := postprocess_bbox(bbox.tolist())) is not None
+            ]
+        return []
 
 
 @serve.deployment(ray_actor_options={"num_cpus": 0, "num_gpus": 0.25})
@@ -66,13 +82,31 @@ class Tracker:
     def __init__(self):
         self.model: DeepSort = DeepSort(max_age=5, embedder="torchreid")
 
-    def __call__(self, frame: np.ndarray, bboxes: list[DetectionBbox]) -> list[TrackerResult]:
+    def __call__(
+        self, frame: np.ndarray, bboxes: list[DetectionBbox]
+    ) -> list[TrackerResult]:
+        """Track face by face's bbox.
+
+        Args:
+            frame: Input image(full).
+            bboxes: Bboxes of found faces.
+
+        Returns:
+            TrackID of face.
+        """
         tracker_bboxes: InitialTrackerBbox = [[bbox, 0, 0] for bbox in bboxes]
-        tracks: list[Track] = self.model.update_tracks(raw_detections=tracker_bboxes, frame=frame)
+        tracks: list[Track] = self.model.update_tracks(
+            raw_detections=tracker_bboxes, frame=frame
+        )
+        postprocessed_tracks = [
+            track
+            for track in tracks
+            if postprocess_bbox(track.to_ltwh().tolist())
+        ]
         return [
             TrackerResult(
                 track_id=track.track_id,
-                bbox=[0 if i < 0 else i for i in track.to_ltwh().tolist()],
+                bbox=[0 if coord < 0 else coord for coord in track.to_ltwh().tolist()],
             )
-            for track in tracks
+            for track in postprocessed_tracks
         ]
