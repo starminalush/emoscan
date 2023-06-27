@@ -1,4 +1,4 @@
-FROM rayproject/ray:2.3.0-py310-cu116
+FROM rayproject/ray:2.3.0-py310-cu116@sha256:2efbceab43c95be9409316080c388c449616b49c6d0952c5ac70a43b3fce3093
 USER root
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
