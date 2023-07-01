@@ -28,7 +28,7 @@ router = APIRouter()
 async def recognize(img_bytes) -> list[EmotionRecognitionResponse | None]:
     try:
         async with httpx.AsyncClient() as client:
-            body = {"img_bytes": img_bytes}
+            body = {"img_bytes": cnvt_image_to_base64(img_bytes)}
             response = await client.post(
                 url=os.getenv("MODEL_DEPLOYMENT_URI"), json=body
             )
@@ -63,8 +63,8 @@ async def process_frame_pipeline(
         image_path = (
             f"{current_date.strftime('%Y-%m-%d')}/{str(task_id)}/{image_uuid}.jpg"
         )
-        await s3_client.upload_fileobj(
-            cnvt_image_to_bytes(img_bytes), "logs", image_path
+        await s3_client.upload_file(
+             image_path, img_bytes
         )
 
         return [
@@ -88,7 +88,7 @@ async def upload_image(
     """Recognize emotions on faces in image file."""
     task_id: UUID = uuid4()
     return await process_frame_pipeline(
-        img_bytes=cnvt_image_to_base64((await upload_file.read())),
+        img_bytes=(await upload_file.read()),
         task_id=task_id,
         db=db,
         s3_client=s3_client,
