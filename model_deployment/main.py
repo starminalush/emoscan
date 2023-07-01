@@ -37,7 +37,7 @@ class EmotionRecognitionPipeline:
         Returns:
             List containing the track_id label for each unique face, the bbox of the face, and the emotion class label.
         """
-        image: np.ndarray = cnvt_base64_to_numpy(image.img_bytes)
+        image: np.ndarray = cnvt_base64_to_numpy(image.base64_image)
         bboxes: list[DetectionBbox | None] = await (
             await self.face_detector.remote(image)
         )
