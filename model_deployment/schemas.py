@@ -4,7 +4,7 @@ from aliases import DetectionBbox
 
 
 class Image(BaseModel):
-    img_bytes: str
+    base64_image: str
 
 
 class TrackerResult(BaseModel):
