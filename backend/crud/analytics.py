@@ -1,9 +1,10 @@
 from datetime import date
 
 from core.db.models import Event
-from schemas.analytics import AnalyticsByRangeOfDates, AnalyticsByStudentID
+from schemas.analytics import AnalyticsByRangeOfDates
 from sqlalchemy import Date, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from loguru import logger
 
 
 async def get_analytics_by_range_of_dates(
@@ -15,21 +16,23 @@ async def get_analytics_by_range_of_dates(
         .group_by(cast(Event.datetime, Date), Event.emotion)
     )
 
-    analytics_by_date = (await db.execute(sql_statement)).scalars().all()
-    return analytics_by_date if analytics_by_date else []
+    analytics_by_date = (await db.execute(sql_statement)).all()
+    logger.info(analytics_by_date)
+    return [AnalyticsByRangeOfDates(emotion=emotion, count=count, date=date) for (date, emotion, count) in analytics_by_date]
 
 
 async def get_analytics_by_student_id(
     db: AsyncSession, student_id: int, start_date: date, end_date: date
-) -> list[AnalyticsByStudentID | None]:
+) -> list[AnalyticsByRangeOfDates | None]:
     sql_statement = (
-        select(Event.emotion, func.count(Event.emotion), cast(Event.datetime, Date))
+        select(cast(Event.datetime, Date), Event.emotion, func.count(Event.emotion))
         .where(
             Event.track_id == student_id,
             cast(Event.datetime, Date).between(start_date, end_date),
         )
         .group_by(cast(Event.datetime, Date), Event.emotion)
     )
-    statistics_by_student = (await db.execute(sql_statement)).scalars().all()
+    analytics_by_student = (await db.execute(sql_statement)).all()
 
-    return statistics_by_student if statistics_by_student else []
+    return [AnalyticsByRangeOfDates(emotion=emotion, count=count, date=date) for (date, emotion, count) in analytics_by_student]
+

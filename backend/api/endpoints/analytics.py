@@ -3,7 +3,7 @@ from datetime import date
 from api.deps import get_db
 from crud.analytics import get_analytics_by_range_of_dates, get_analytics_by_student_id
 from fastapi import APIRouter, Depends, Query
-from schemas.analytics import AnalyticsByRangeOfDates, AnalyticsByStudentID
+from schemas.analytics import AnalyticsByRangeOfDates
 
 router = APIRouter()
 
@@ -17,7 +17,7 @@ async def get_analytics_by_date(
     )
 
 
-@router.get("/{student_id}", response_model=list[AnalyticsByStudentID | None])
+@router.get("/{student_id}", response_model=list[AnalyticsByRangeOfDates | None])
 async def get_analytics_by_student(
     student_id: int,
     date_start: date = Query(...),

@@ -1,28 +1,12 @@
 from datetime import date, timedelta
-from io import BytesIO
-from os import getenv
 
-import pandas as pd
-import plotly.graph_objects as go
-import requests
 import streamlit as st
-
-
-def _get_all_students():
-    result = requests.get(f"{getenv('BACKEND_URI')}/students/").json()
-    return result
-
-
-def _get_student_statistics(student_id, start_date, end_date):
-    result = requests.get(
-        f"{getenv('BACKEND_URI')}/analytics/{student_id}?date_start={start_date}&date_end={end_date}"
-    ).json()
-    return result
-
+from services.backend_requests import get_all_students, get_analytics_by_student_id
+from services.plot_analytics import plot_analytics
 
 st.set_page_config(page_title="Список студентов", page_icon="🧑")
 with st.spinner("Загружаем список студентов..."):
-    students_data = _get_all_students()
+    students_data = get_all_students()
 students_data = [res["track_id"] for res in students_data]
 
 
@@ -34,26 +18,9 @@ is_pressed = st.button("Получить аналитику")
 
 if is_pressed:
     with st.spinner("Считаем аналитику..."):
-        result = _get_student_statistics(track_id, start_date, end_date)
-        if result:
-            df = pd.DataFrame(result)
-
-            # Группировка данных по полю 'emotion'
-            grouped_data = df.groupby("emotion")
-
-            # Создание графиков для каждой эмоции
-            fig = go.Figure()
-
-            for emotion, data in grouped_data:
-                fig.add_trace(
-                    go.Scatter(
-                        x=data["datetime"],
-                        y=data["count"],
-                        mode="lines+markers",
-                        name=emotion,
-                    )
-                )
-
+        analytics = get_analytics_by_student_id(track_id, start_date, end_date)
+        if analytics:
+            fig = plot_analytics(analytics)
             # Вывод графика в Streamlit
             st.plotly_chart(fig)
         else:

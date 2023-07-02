@@ -23,7 +23,7 @@ def get_all_pages():
     return saved_default_pages
 
 
-def clear_all_but_first_page():
+def clear_all_except_first_page():
     current_pages = get_pages(DEFAULT_PAGE)
 
     if len(current_pages.keys()) == 1:
@@ -57,7 +57,7 @@ def hide_page(name: str):
 
     for key, val in current_pages.items():
         if val["page_name"] == name:
-            del current_pages[key]
+            current_pages.pop(key)
             _on_pages_changed.send()
             break
 
@@ -65,7 +65,7 @@ def hide_page(name: str):
 if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False
 
-clear_all_but_first_page()
+clear_all_except_first_page()
 # Create an empty container
 placeholder = st.empty()
 
@@ -96,4 +96,4 @@ if st.session_state["logged_in"]:
     hide_page(DEFAULT_PAGE.replace(".py", ""))
     switch_page(SECOND_PAGE_NAME)
 else:
-    clear_all_but_first_page()
+    clear_all_except_first_page()

@@ -1,8 +1,8 @@
-from api.endpoints import analytics, recognition, students
+from api.endpoints import analytics, recognition, student
 from fastapi import APIRouter
 
 router = APIRouter()
 
 router.include_router(recognition.router, prefix="/recognize", tags=["recognition"])
 router.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
-router.include_router(students.router, prefix="/students", tags=["students"])
+router.include_router(student.router, prefix="/student", tags=["students"])
