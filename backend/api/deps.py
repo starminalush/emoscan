@@ -1,9 +1,7 @@
-from os import getenv
 from typing import Generator
-from core.s3.s3client import S3Client
-import aioboto3
 
 from core.db.database import SessionLocal
+from core.s3.s3client import S3Client
 
 
 async def get_db() -> Generator:

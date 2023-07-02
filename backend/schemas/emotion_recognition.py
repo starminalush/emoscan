@@ -13,3 +13,7 @@ class EmotionRecognitionResponse(EmotionRecognitionResponseImage):
 class EmotionRecognitionResponseVideo(BaseModel):
     task_id: str
     emotion_proportion: dict[str, float]
+
+
+class EmotionRecognitionRequestData(BaseModel):
+    task_id: str

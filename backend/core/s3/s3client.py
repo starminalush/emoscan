@@ -1,4 +1,3 @@
-import asyncio
 import io
 from os import getenv
 
@@ -42,8 +41,25 @@ class S3Client:
     async def upload_file(self, filename: str, img_bytes: bytes):
         try:
             async with self._client as client:
-                await client.upload_fileobj(
-                    io.BytesIO(img_bytes), self._bucket_name, filename
+                create_upload_response = await client.create_multipart_upload(
+                    Bucket=self._bucket_name, Key=filename
                 )
-        except Exception as e:
-            raise e
+                upload_id = create_upload_response["UploadId"]
+                await client.upload_fileobj(
+                    io.BytesIO(img_bytes),
+                    Bucket=self._bucket_name,
+                    Key=filename,
+                    UploadId=upload_id,
+                )
+                return upload_id
+        except Exception as err:
+            raise err
+
+    async def abort_file_upload(self, upload_id, filename: str):
+        try:
+            async with self._client as client:
+                await client.complete_multipart_upload(
+                    Bucket=self._bucket_name, Key=filename, UploadId=upload_id
+                )
+        except Exception as err:
+            raise err

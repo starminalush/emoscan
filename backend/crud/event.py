@@ -1,19 +1,13 @@
 from dataclasses import asdict
 
+from core.db.models import Event
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.db.models import Event
-from data_classes.emotion_recognition import EmotionRecognitionHistoryEvent
 
-
-async def write_logs(
+async def add_recognition_event_to_db(
     db: AsyncSession,
-    event_list: EmotionRecognitionHistoryEvent | list[EmotionRecognitionHistoryEvent],
+    event_list,
 ):
-    if isinstance(event_list, list):
-        events_db = [Event(**asdict(event)) for event in event_list]
-        db.add_all(events_db)
-    else:
-        event_db = Event(**asdict(event_list))
-        db.add(event_db)
+    events_db = [Event(**asdict(event)) for event in event_list]
+    db.add_all(events_db)
     await db.commit()

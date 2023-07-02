@@ -1,9 +1,8 @@
 from datetime import date
 
-from fastapi import APIRouter, Depends, Query
-
 from api.deps import get_db
 from crud.analytics import get_analytics_by_range_of_dates, get_analytics_by_student_id
+from fastapi import APIRouter, Depends, Query
 from schemas.analytics import AnalyticsByRangeOfDates, AnalyticsByStudentID
 
 router = APIRouter()

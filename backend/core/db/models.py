@@ -1,7 +1,6 @@
+from core.db.database import Base
 from sqlalchemy import ARRAY, Column, DateTime, Integer, Text
 from sqlalchemy.dialects.postgresql import UUID
-
-from core.db.database import Base
 
 
 class Event(Base):
