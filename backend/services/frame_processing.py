@@ -7,7 +7,6 @@ from crud.event import add_recognition_event_to_db
 from data_classes.emotion_recognition import EmotionRecognitionHistoryEvent
 from schemas.emotion_recognition import EmotionRecognitionResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from utils.converters import cnvt_image_to_bytes
 
 
 async def recognize(img_bytes) -> list[EmotionRecognitionResponse | None]:
@@ -49,7 +48,7 @@ async def write_logs(
         ]
         await add_recognition_event_to_db(db=db, event_list=events_list)
         upload_id = await s3_client.upload_fileobj(
-            cnvt_image_to_bytes(img_bytes), "logs", image_path
+            img_bytes, "logs", image_path
         )
     except Exception:
         if upload_id:

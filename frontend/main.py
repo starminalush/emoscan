@@ -12,7 +12,7 @@ SECOND_PAGE_NAME = "image recognition"
 def get_all_pages():
     default_pages = get_pages(DEFAULT_PAGE)
 
-    pages_path = Path("app/pages.json")
+    pages_path = Path("pages.json")
 
     if pages_path.exists():
         saved_default_pages = json.loads(pages_path.read_text())

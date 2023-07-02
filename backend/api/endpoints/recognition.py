@@ -5,7 +5,7 @@ from fastapi import APIRouter, Body, Depends, File, UploadFile
 from schemas.emotion_recognition import EmotionRecognitionResponse
 from services.frame_processing import recognize, write_logs
 from sqlalchemy.ext.asyncio import AsyncSession
-from utils.converters import cnvt_image_to_base64
+from converters import cnvt_image_to_base64
 
 router = APIRouter()
 
