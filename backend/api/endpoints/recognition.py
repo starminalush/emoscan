@@ -1,11 +1,13 @@
 from uuid import UUID
 
-from api.deps import get_c3_client, get_db
 from fastapi import APIRouter, Body, Depends, File, UploadFile
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from api.deps import get_c3_client, get_db
+from converters import cnvt_image_to_base64
+from core.s3.s3client import S3Client
 from schemas.emotion_recognition import EmotionRecognitionResponse
 from services.frame_processing import recognize, write_logs
-from sqlalchemy.ext.asyncio import AsyncSession
-from converters import cnvt_image_to_base64
 
 router = APIRouter()
 
@@ -17,7 +19,7 @@ async def recognize_emotions_on_image(
         ..., content_type=["image/jpeg", "image/png", "image/jpg"]
     ),
     db: AsyncSession = Depends(get_db),
-    s3_client=Depends(get_c3_client),
+    s3_client: S3Client = Depends(get_c3_client),
 ):
     """Recognize emotions on faces in image file.
 
@@ -30,7 +32,7 @@ async def recognize_emotions_on_image(
     Returns:
         List of EmotionRecognitionResponse.
     """
-    img_bytes = await upload_file.read()
+    img_bytes: bytes = await upload_file.read()
     emotion_recognition_results: list[
         EmotionRecognitionResponse | None
     ] = await recognize(img_bytes=cnvt_image_to_base64(img_bytes))

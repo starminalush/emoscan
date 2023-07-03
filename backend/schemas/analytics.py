@@ -7,4 +7,3 @@ class AnalyticsByRangeOfDates(BaseModel):
     emotion: str
     count: int
     date: date
-

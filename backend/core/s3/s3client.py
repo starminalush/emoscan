@@ -1,3 +1,5 @@
+# flake8: noqa: WPS117
+"""Custom S3 client for boto3."""
 import io
 from os import getenv
 
@@ -39,27 +41,15 @@ class S3Client:
         return self
 
     async def upload_file(self, filename: str, img_bytes: bytes):
-        try:
-            async with self._client as client:
-                create_upload_response = await client.create_multipart_upload(
-                    Bucket=self._bucket_name, Key=filename
-                )
-                upload_id = create_upload_response["UploadId"]
-                await client.upload_fileobj(
-                    io.BytesIO(img_bytes),
-                    Bucket=self._bucket_name,
-                    Key=filename,
-                    UploadId=upload_id,
-                )
-                return upload_id
-        except Exception as err:
-            raise err
+        """Upload image to s3.
 
-    async def abort_file_upload(self, upload_id, filename: str):
-        try:
-            async with self._client as client:
-                await client.complete_multipart_upload(
-                    Bucket=self._bucket_name, Key=filename, UploadId=upload_id
-                )
-        except Exception as err:
-            raise err
+        Args:
+            filename: Path in minio.
+            img_bytes: Input image.
+        """
+        async with self._client as client:
+            await client.upload_fileobj(
+                io.BytesIO(img_bytes),
+                Bucket=self._bucket_name,
+                Key=filename,
+            )

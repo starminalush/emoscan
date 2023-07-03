@@ -5,9 +5,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 def create_app():
-    app = FastAPI()
-    app.include_router(router)
-    return app
+    new_app = FastAPI()
+    new_app.include_router(router)
+    return new_app
 
 
 app = create_app()

@@ -11,5 +11,3 @@ class EmotionRecognitionHistoryEvent:
     track_id: int
     datetime: datetime
     image_uuid: UUID
-
-
