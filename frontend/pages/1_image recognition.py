@@ -1,6 +1,8 @@
 from uuid import uuid4
 
 import streamlit as st
+from loguru import logger
+
 from services.backend_requests import recognize
 from services.image_processing import crop_face
 
@@ -12,17 +14,18 @@ if image_file is not None:
     st.text("Загруженное фото")
     with st.spinner("Распознаем..."):
         task_id = str(uuid4())
-        recognized_data = recognize(image_bytes=image_file.read(), task_id=task_id)
+        recognized_emotions = recognize(image_bytes=image_file.read(), task_id=task_id)
     st.subheader("Результат распознавания")
     grid = st.columns(5)
     col = 0
-    if recognized_data:
-        for data in recognized_data:
+    if recognized_emotions:
+        for recognized_emotion in recognized_emotions:
             with grid[col]:
+                logger.info(type(image_file))
                 st.image(
-                    crop_face(bbox=data["bbox"], image_file=image_file),
+                    crop_face(bbox=recognized_emotion.bbox, image=image_file),
                     width=100,
-                    caption=f"Настроение: {data['emotion']}",
+                    caption=f"Настроение: {recognized_emotion.emotion}",
                 )
             col = (col + 1) % 5
     else:

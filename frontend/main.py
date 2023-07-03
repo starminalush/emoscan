@@ -1,3 +1,4 @@
+# flake8: noqa: S105
 import json
 from pathlib import Path
 
@@ -32,9 +33,9 @@ def clear_all_except_first_page():
     get_all_pages()
 
     # Remove all but the first page
-    key, val = list(current_pages.items())[0]
+    page, page_data = list(current_pages.items())[0]
     current_pages.clear()
-    current_pages[key] = val
+    current_pages[page] = page_data
 
     _on_pages_changed.send()
 
@@ -43,11 +44,10 @@ def show_all_pages():
     current_pages = get_pages(DEFAULT_PAGE)
 
     saved_pages = get_all_pages()
-
     # Replace all the missing pages
-    for key in saved_pages:
-        if key not in current_pages:
-            current_pages[key] = saved_pages[key]
+    for page in saved_pages:
+        if page not in current_pages:
+            current_pages[page] = saved_pages[page]
 
     _on_pages_changed.send()
 
@@ -55,9 +55,9 @@ def show_all_pages():
 def hide_page(name: str):
     current_pages = get_pages(DEFAULT_PAGE)
 
-    for key, val in current_pages.items():
-        if val["page_name"] == name:
-            current_pages.pop(key)
+    for page, page_data in current_pages.items():
+        if page_data["page_name"] == name:
+            current_pages.pop(page)
             _on_pages_changed.send()
             break
 
@@ -66,7 +66,6 @@ if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False
 
 clear_all_except_first_page()
-# Create an empty container
 placeholder = st.empty()
 
 actual_email = "email@mail.ru"
@@ -87,7 +86,6 @@ if submit and email == actual_email and password == actual_password:
     st.success("Авторизовано как {}".format(email))
 elif submit and email != actual_email and password != actual_password:
     st.error("Ошибка авторизации")
-
 else:
     pass
 

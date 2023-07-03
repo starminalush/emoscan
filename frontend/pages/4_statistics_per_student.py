@@ -1,7 +1,8 @@
 from datetime import date, timedelta
 
 import streamlit as st
-from services.backend_requests import get_all_students, get_analytics_by_student_id
+
+from services.backend_requests import get_all_students, get_analytics_by_student_track_id
 from services.plot_analytics import plot_analytics
 
 st.set_page_config(page_title="Список студентов", page_icon="🧑")
@@ -18,10 +19,9 @@ is_pressed = st.button("Получить аналитику")
 
 if is_pressed:
     with st.spinner("Считаем аналитику..."):
-        analytics = get_analytics_by_student_id(track_id, start_date, end_date)
+        analytics = get_analytics_by_student_track_id(track_id, start_date, end_date)
         if analytics:
             fig = plot_analytics(analytics)
-            # Вывод графика в Streamlit
             st.plotly_chart(fig)
         else:
             st.text("Нет данных за этот период")

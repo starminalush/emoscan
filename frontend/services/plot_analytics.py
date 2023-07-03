@@ -1,16 +1,21 @@
 import pandas as pd
-import plotly.graph_objects as go
+from plotly import graph_objects as go
+
+from data_classes import Analytics
 
 
-def plot_analytics(analytics: list):
+def plot_analytics(analytics: list[Analytics]) -> go.Figure:
+    """Plot analytics graph of recognition emotions by range of dates.
+
+    Args:
+        analytics: List of dicts each containing emotion, total number of emotions over range of dates and track_id.
+
+    Returns:
+        Plotly Figure object.
+    """
     df = pd.DataFrame(analytics)
-
-    # Группировка данных по полю 'emotion'
     grouped_data = df.groupby("emotion")
-
-    # Создание графиков для каждой эмоции
     fig = go.Figure()
-
     for emotion, emotion_data in grouped_data:
         fig.add_trace(
             go.Scatter(
