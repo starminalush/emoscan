@@ -99,9 +99,7 @@ class Tracker:
             raw_detections=tracker_bboxes, frame=frame
         )
         postprocessed_tracks = [
-            track
-            for track in tracks
-            if postprocess_bbox(track.to_ltwh().tolist())
+            track for track in tracks if postprocess_bbox(track.to_ltwh().tolist())
         ]
         return [
             TrackerResult(

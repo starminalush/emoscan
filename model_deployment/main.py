@@ -2,7 +2,7 @@ import asyncio
 from os import getenv
 
 import numpy as np
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File
 from ray import get, serve
 from ray.serve.handle import RayServeHandle
 
@@ -28,16 +28,21 @@ class EmotionRecognitionPipeline:
         self.tracker = tracker_handler
 
     @app.post("/", response_model=list[RecognitionResult | None])
-    async def recognize_emotions(self, image: Image):
+    async def recognize_emotions(
+        self,
+        upload_file: UploadFile = File(
+            ..., content_type=["image/jpeg", "image/png", "image/jpg"]
+        ),
+    ):
         """Recognize emotions on all faces found in the photo.
 
         Args:
-            image: Input image.
+            upload_file: Input image.
 
         Returns:
             List containing the track_id label for each unique face, the bbox of the face, and the emotion class label.
         """
-        image: np.ndarray = cnvt_base64_to_numpy(image.base64_image)
+        image: np.ndarray = cnvt_base64_to_numpy(upload_file.read())
         bboxes: list[DetectionBbox | None] = await (
             await self.face_detector.remote(image)
         )
