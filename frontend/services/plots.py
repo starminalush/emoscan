@@ -26,3 +26,18 @@ def plot_analytics(analytics: list[Analytics]) -> go.Figure:
             )
         )
     return fig
+
+
+def plot_emotion_percentage(emotions: dict[str, float]):
+    """Plot pie chart of recognized emotion.
+
+    Args:
+        emotions: Dict with emotions and emotions proportions
+
+    Returns:
+        Plotly Pie Chart object.
+    """
+    emotions_name = list(emotions.keys())
+    emotions_proportion = list(emotions.values())
+
+    return go.Figure(data=go.Pie(labels=emotions_name, values=emotions_proportion))

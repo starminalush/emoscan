@@ -3,10 +3,9 @@ from datetime import date, timedelta
 import streamlit as st
 
 from services.backend_requests import get_analytics_by_range_of_dates
-from services.plot_analytics import plot_analytics
+from services.plots import plot_analytics
 
 st.set_page_config(page_title="Аналитика эмоций по дням", page_icon="🕒")
-
 
 start_date = st.date_input("Начало:", date.today() - timedelta(days=7))
 end_date = st.date_input("Конец:", date.today())

@@ -17,5 +17,6 @@ class Analytics:
     date: date
 
 
+@dataclass
 class Student:
     track_id: int

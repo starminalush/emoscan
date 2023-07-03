@@ -1,12 +1,12 @@
 from uuid import uuid4
 
 import streamlit as st
-from loguru import logger
 
 from services.backend_requests import recognize
 from services.image_processing import crop_face
 
 st.set_page_config(page_title="Распознавание по изображению", page_icon="📷")
+
 image_file = st.file_uploader("Загрузить фото", type=["png", "jpg", "jpeg"])
 
 if image_file is not None:
@@ -21,7 +21,6 @@ if image_file is not None:
     if recognized_emotions:
         for recognized_emotion in recognized_emotions:
             with grid[col]:
-                logger.info(type(image_file))
                 st.image(
                     crop_face(bbox=recognized_emotion.bbox, image=image_file),
                     width=100,

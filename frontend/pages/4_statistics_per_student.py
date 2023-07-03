@@ -2,13 +2,17 @@ from datetime import date, timedelta
 
 import streamlit as st
 
-from services.backend_requests import get_all_students, get_analytics_by_student_track_id
-from services.plot_analytics import plot_analytics
+from services.backend_requests import (
+    get_all_students,
+    get_analytics_by_student_track_id,
+)
+from services.plots import plot_analytics
 
 st.set_page_config(page_title="Список студентов", page_icon="🧑")
+
 with st.spinner("Загружаем список студентов..."):
     students_data = get_all_students()
-students_data = [res["track_id"] for res in students_data]
+students_data = [student.track_id for student in students_data]
 
 
 track_id = st.selectbox("Выберите студента", students_data)

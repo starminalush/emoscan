@@ -1,10 +1,10 @@
 from datetime import date
 
-from core.db.models import Event
-from schemas.analytics import AnalyticsByRangeOfDates
 from sqlalchemy import Date, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from loguru import logger
+
+from core.db.models import Event
+from schemas.analytics import AnalyticsByRangeOfDates
 
 
 async def get_analytics_by_range_of_dates(
