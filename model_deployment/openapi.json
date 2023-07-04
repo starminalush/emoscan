@@ -1,0 +1,160 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "FastAPI",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/predict/": {
+      "post": {
+        "summary": "Recognize Emotions",
+        "description": "Recognize emotions on all faces found in the photo.\n\nArgs:\n    upload_file: Input image.\n\nReturns:\n    List containing the track_id label for each unique face, the bbox of the face, and the emotion class label.",
+        "operationId": "recognize_emotions_predict__post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_recognize_emotions_predict__post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Recognize Emotions Predict  Post",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RecognitionResult"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Body_recognize_emotions_predict__post": {
+        "title": "Body_recognize_emotions_predict__post",
+        "required": [
+          "upload_file"
+        ],
+        "type": "object",
+        "properties": {
+          "upload_file": {
+            "title": "Upload File",
+            "type": "string",
+            "format": "binary",
+            "content_type": [
+              "image/jpeg",
+              "image/png",
+              "image/jpg"
+            ]
+          }
+        }
+      },
+      "HTTPValidationError": {
+        "title": "HTTPValidationError",
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            }
+          }
+        }
+      },
+      "RecognitionResult": {
+        "title": "RecognitionResult",
+        "required": [
+          "bbox",
+          "track_id",
+          "emotion"
+        ],
+        "type": "object",
+        "properties": {
+          "bbox": {
+            "title": "Bbox",
+            "maxItems": 4,
+            "minItems": 4,
+            "type": "array",
+            "items": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          },
+          "track_id": {
+            "title": "Track Id",
+            "type": "integer"
+          },
+          "emotion": {
+            "title": "Emotion",
+            "type": "string"
+          }
+        }
+      },
+      "ValidationError": {
+        "title": "ValidationError",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "loc": {
+            "title": "Location",
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            }
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
