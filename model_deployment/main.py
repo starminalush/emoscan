@@ -1,15 +1,15 @@
 import asyncio
 from os import getenv
 
-import numpy as np
 from fastapi import FastAPI, UploadFile, File
+import numpy as np
 from ray import get, serve
 from ray.serve.handle import RayServeHandle
 
 from aliases import DetectionBbox
-from converter import cnvt_base64_to_numpy
+from converter import cnvt_bytes_to_numpy
 from models import EmotionRecognizer, FaceDetector, Tracker
-from schemas import Image, RecognitionResult, TrackerResult
+from schemas import RecognitionResult, TrackerResult
 
 app = FastAPI()
 
@@ -27,7 +27,7 @@ class EmotionRecognitionPipeline:
         self.emotion_recognizer = emotion_recognition_handler
         self.tracker = tracker_handler
 
-    @app.post("/", response_model=list[RecognitionResult | None])
+    @app.post("/predict/", response_model=list[RecognitionResult | None])
     async def recognize_emotions(
         self,
         upload_file: UploadFile = File(
@@ -42,7 +42,7 @@ class EmotionRecognitionPipeline:
         Returns:
             List containing the track_id label for each unique face, the bbox of the face, and the emotion class label.
         """
-        image: np.ndarray = cnvt_base64_to_numpy(upload_file.read())
+        image: np.ndarray = cnvt_bytes_to_numpy(upload_file.file.read())
         bboxes: list[DetectionBbox | None] = await (
             await self.face_detector.remote(image)
         )
@@ -68,7 +68,7 @@ class EmotionRecognitionPipeline:
         return []
 
 
-app = EmotionRecognitionPipeline.bind(
+backend = EmotionRecognitionPipeline.bind(
     FaceDetector.bind(),
     EmotionRecognizer.bind(getenv("MODEL_S3_PATH")),
     Tracker.bind(),

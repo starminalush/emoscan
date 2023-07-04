@@ -1,4 +1,7 @@
-def postprocess_bbox(bbox: list[int]) -> list[int | None]:
+from aliases import DetectionBbox
+
+
+def postprocess_bbox(bbox: list[DetectionBbox]) -> list[DetectionBbox | None]:
     """Postprocess face detector or tracker bbox.
 
     Args:

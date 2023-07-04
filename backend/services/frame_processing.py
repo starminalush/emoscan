@@ -28,7 +28,6 @@ async def recognize(img_bytes: bytes) -> list[EmotionRecognitionResponse | None]
             return response.json()
     except Exception as err:
         logger.error(err)
-        logger.error(response.content)
         return []
 
 

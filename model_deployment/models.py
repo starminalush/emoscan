@@ -58,7 +58,7 @@ class FaceDetector:
     def __init__(self):
         self.model: MTCNN = MTCNN(image_size=640, device=torch.device("cuda:0"))
 
-    def __call__(self, image: np.ndarray):
+    def __call__(self, image: np.ndarray) -> list[DetectionBbox]:
         """Detect faces on image.
 
         Args:
