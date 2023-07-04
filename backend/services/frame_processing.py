@@ -24,10 +24,11 @@ async def recognize(img_bytes: bytes) -> list[EmotionRecognitionResponse | None]
     try:
         async with httpx.AsyncClient() as client:
             files = {"upload_file": img_bytes}
-            response = await client.post(url=getenv("MODEL_DEPLOYMENT_URI"), files=files)
+            response = await client.post(url=f"{getenv('MODEL_DEPLOYMENT_URI')}/predict/", files=files)
             return response.json()
     except Exception as err:
         logger.error(err)
+        logger.error(response.content)
         return []
 
 

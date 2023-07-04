@@ -9,6 +9,6 @@ async def get_db() -> Generator:
         yield session
 
 
-async def get_c3_client():
+async def get_c3_client() -> Generator:
     async with S3Client() as s3_client:
         yield s3_client

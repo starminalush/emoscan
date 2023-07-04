@@ -1,9 +1,6 @@
-Model deployment
-==============================
-Описание: 
----------------------
 Cервис для инференса нейросетевых моделей на основе [Ray Serve](https://docs.ray.io/en/latest/serve/index.html). 
-Модели:
+
+## Модели:
  - [MTCNN](https://pypi.org/project/facenet-pytorch/) для детекции лиц
  - [DeepSort](https://pypi.org/project/deep-sort-realtime/) для трекинга лиц
  - [EmotionRecognition](https://github.com/starminalush/mfdp-2023) - наша обученная модель распознавания лиц на основе DAN
@@ -12,18 +9,49 @@ Cервис для инференса нейросетевых моделей н
 
 Модели для детекции лиц и трекинга были сознательно использованы такие простые, потому что мне показалось не очень хорошей идеей вносить сюда подмодули с нормальными моделями.
 На это есть следующие причины:
- - Если деплоить, то все через onnxruntime. Переводить сторонние модели в ONNX не особо наглядно.
+ - Переводить сторонние модели в ONNX не особо наглядно.
  - Качество этих моделей для MVP вполне устраивает.
  - Это снизит размер готового образа. Он и так потребляет слишком много ресурсов из-за Ray Serve.
 
-Если ваша модель лежит на mlflow и не сконвертирована в onnx, запустите следующий скрипт, прежде чем продолжать.
+Если ваша модель распознавания эмоций лежит на mlflow и не сконвертирована в onnx, запустите stage onnx_converter в [репозитории обучения модели](https://github.com/starminalush/mfdp-2023), прежде чем продолжать.
 
-Описание запуска модуля
----------------------
- - заполнить .env файл в model_deployment/.env по примеру model_deployment/.env.template
- - заполнить .env файл в корне проекта по примеру .env.template
- - `sudo docker compose up --build -d model_deployment`. 
+## Переменные окружения
+
+| Переменная           |            Описание             | Значение по умолчанию |
+|----------------------|:-------------------------------:|:---------------------:|
+| AWS_ACCESS_KEY_ID | ACCESS_KEY для s3 хранилища | miniokey|
+| AWS_SECRET_ACCESS_KEY | SECRET_KEY для s3 хранилища| miniosecretkey|
+| MLFLOW_TRACKING_URI| Адрес mlflow tracking сервера, где модели лежат |http://mlflow_backend:5000 |
+|MLFLOW_S3_ENDPOINT_URL| Адрес s3 хранилища mlflow сервера | http://minio:9000|
+| MODEL_S3_PATH| Путь до модели для деплоя в mlflow | s3://experiments/1/465e546c511f459196393bb26b978d3a/artifacts/onnx_model.onnx |
+| CUDA_VISIBLE_DEVICES| Номер карты для инференса моделей | 0|
+
+## Структура проекта
+
+```
+    ├── aliases                   <- Модуль с type aliases для более удобной работы.
+    |
+    ├── converter.py              <- Модуль c разными конвертаторами из формата в формат.
+    |
+    ├── .env.template             <- Шаблон .env файла.
+    |
+    ├── main.py                      <- Скрипт инициализации приложения.
+    |
+    ├── data_classes.py           <- Модуль dataclasses.
+    |
+    ├── Dockerfile                <- Конфиг docker образа.
+    |
+    ├── main.py                   <- Скрипт инициализации приложения.
+    |
+    └── requirements.txt          <- Файл с зависимостями.
+```
+
+## Запуск
+1. Заполните .env файл в model_deployment/.env по примеру model_deployment/.env.template 
+2. 3аполнить .env файл в корне проекта по примеру .env.template
+3. Выполните команду
+
+`sudo docker compose up --build -d model_deployment`. 
 Примечание: если на моменте билда появляется ошибка failed to fetch anonymous token: unexpected status: 401 Unauthorized, выполните следующую команду:
 `sudo docker pull  nvcr.io/nvidia/cuda:11.6.0-cudnn8-devel-ubuntu20.04` и снова запустите `sudo docker compose up --build -d model_deployment`
- 
-Контейнер весит почти 20гб, потому что внутри у него анаконда
+

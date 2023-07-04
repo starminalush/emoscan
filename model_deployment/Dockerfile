@@ -15,3 +15,4 @@ COPY . /app
 WORKDIR /app
 ENV PATH=/usr/local/cuda-11.6/bin:$PATH
 ENV LD_LIBRARY_PATH=/usr/local/cuda-11.6/lib64:$LD_LIBRARY_PATH
+CMD ["serve", "run", "--host", "0.0.0.0", "main:backend"]
