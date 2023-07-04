@@ -10,4 +10,5 @@ async def get_db() -> Generator:
 
 
 async def get_c3_client():
-    return await S3Client.create()
+    async with S3Client() as s3_client:
+        yield s3_client

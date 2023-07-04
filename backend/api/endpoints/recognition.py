@@ -4,7 +4,6 @@ from fastapi import APIRouter, Body, Depends, File, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.deps import get_c3_client, get_db
-from converters import cnvt_image_to_base64
 from core.s3.s3client import S3Client
 from schemas.emotion_recognition import EmotionRecognitionResponse
 from services.frame_processing import recognize, write_logs
@@ -35,7 +34,7 @@ async def recognize_emotions_on_image(
     img_bytes: bytes = await upload_file.read()
     emotion_recognition_results: list[
         EmotionRecognitionResponse | None
-    ] = await recognize(img_bytes=cnvt_image_to_base64(img_bytes))
+    ] = await recognize(img_bytes=img_bytes)
     if emotion_recognition_results:
         await write_logs(
             task_id=task_id,

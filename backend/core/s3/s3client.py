@@ -7,27 +7,32 @@ import aioboto3
 
 
 class S3Client:
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if not cls._instance:
-            cls._instance = super().__new__(cls)
-        return cls._instance
 
     def __init__(self):
         self._session = None
         self._client = None
         self._bucket_name = getenv("BUCKET")
 
-    async def close(self):
+    async def _close(self):
         if self._client is not None:
             await self._client.close()
 
         if self._session is not None:
             await self._session.close()
 
+    async def __aenter__(self):
+        return await S3Client._create()
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        return await self._close()
+
     @classmethod
-    async def create(cls):
+    async def _create(cls) -> 'S3Client':
+        """Create instance of S3Client.
+
+        Returns:
+            Instance of S3Client.
+        """
         self = cls()
         if not self._client:
             if not self._session:

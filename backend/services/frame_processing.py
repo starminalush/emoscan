@@ -36,9 +36,9 @@ def _create_event(
 ) -> EmotionRecognitionHistoryEvent:
     return EmotionRecognitionHistoryEvent(
         task_id=task_id,
-        emotion=recognition_result.emotion,
-        bbox=recognition_result.bbox,
-        track_id=recognition_result.track_id,
+        emotion=recognition_result["emotion"],
+        bbox=recognition_result["bbox"],
+        track_id=recognition_result["track_id"],
         image_uuid=image_uuid,
         datetime=current_date,
     )

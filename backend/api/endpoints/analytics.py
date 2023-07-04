@@ -29,7 +29,7 @@ async def get_analytics_by_dates(
     )
 
 
-@router.get("/{student_id}", response_model=list[AnalyticsByRangeOfDates | None])
+@router.get("/{student_track_id}", response_model=list[AnalyticsByRangeOfDates | None])
 async def get_analytics_by_student(
     student_track_id: int,
     date_start: date = Query(...),

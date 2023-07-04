@@ -1,7 +1,8 @@
-from api.api import router
-from core.db.database import Base, engine
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from api.api import router
+from core.db.database import Base, engine
 
 
 def create_app():
