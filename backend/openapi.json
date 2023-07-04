@@ -1,0 +1,337 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "FastAPI",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/recognize/": {
+      "post": {
+        "tags": [
+          "recognition"
+        ],
+        "summary": "Recognize Emotions On Image",
+        "description": "Recognize emotions on faces in image file.\n\nArgs:\n    task_id: ID of recognition task. Ex: lesson ID.\n    upload_file: Image or frame from video.\n    db: SQLAlchemy local session.\n    s3_client: Class instance of S3Client.\n\nReturns:\n    List of EmotionRecognitionResponse.",
+        "operationId": "recognize_emotions_on_image_recognize__post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_recognize_emotions_on_image_recognize__post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Recognize Emotions On Image Recognize  Post",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EmotionRecognitionResponse"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/analytics/": {
+      "get": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Get Analytics By Dates",
+        "description": "Get analytics by all students by range of dates.\n\nArgs:\n    date_start: Range start date.\n    date_end:  Range end date incl.\n    db: SQLAlchemy local session.\n\nReturns:\n    List of AnalyticsByRangeOfDates each containing emotion, emotion's count and date.",
+        "operationId": "get_analytics_by_dates_analytics__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Date Start",
+              "type": "string",
+              "format": "date"
+            },
+            "name": "date_start",
+            "in": "query"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Date End",
+              "type": "string",
+              "format": "date"
+            },
+            "name": "date_end",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Analytics By Dates Analytics  Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnalyticsByRangeOfDates"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/analytics/{student_track_id}": {
+      "get": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Get Analytics By Student",
+        "description": "Get analytics by student's track id and range of dates.\n\nArgs:\n    student_track_id: Student's track ID.\n    date_start: Range date start.\n    date_end: Range date end.\n    db: SQLAlchemy local session,\n\nReturns:\n    List of AnalyticsByRangeOfDates each containing emotion, emotion's count and date.",
+        "operationId": "get_analytics_by_student_analytics__student_track_id__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Student Track Id",
+              "type": "integer"
+            },
+            "name": "student_track_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Date Start",
+              "type": "string",
+              "format": "date"
+            },
+            "name": "date_start",
+            "in": "query"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Date End",
+              "type": "string",
+              "format": "date"
+            },
+            "name": "date_end",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Analytics By Student Analytics  Student Track Id  Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnalyticsByRangeOfDates"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/student/": {
+      "get": {
+        "tags": [
+          "students"
+        ],
+        "summary": "Get Students",
+        "description": "Get all students' track ids from db for all time.\n\nArgs:\n    db: SQLAlchemy local session.\n\nReturns:\n    List of Student each containing track_id.",
+        "operationId": "get_students_student__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Students Student  Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Student"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnalyticsByRangeOfDates": {
+        "title": "AnalyticsByRangeOfDates",
+        "required": [
+          "emotion",
+          "count",
+          "date"
+        ],
+        "type": "object",
+        "properties": {
+          "emotion": {
+            "title": "Emotion",
+            "type": "string"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "date": {
+            "title": "Date",
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "Body_recognize_emotions_on_image_recognize__post": {
+        "title": "Body_recognize_emotions_on_image_recognize__post",
+        "required": [
+          "task_id",
+          "upload_file"
+        ],
+        "type": "object",
+        "properties": {
+          "task_id": {
+            "title": "Task Id",
+            "type": "string",
+            "format": "uuid"
+          },
+          "upload_file": {
+            "title": "Upload File",
+            "type": "string",
+            "format": "binary",
+            "content_type": [
+              "image/jpeg",
+              "image/png",
+              "image/jpg"
+            ]
+          }
+        }
+      },
+      "EmotionRecognitionResponse": {
+        "title": "EmotionRecognitionResponse",
+        "required": [
+          "bbox",
+          "emotion",
+          "track_id"
+        ],
+        "type": "object",
+        "properties": {
+          "bbox": {
+            "title": "Bbox",
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "emotion": {
+            "title": "Emotion",
+            "type": "string"
+          },
+          "track_id": {
+            "title": "Track Id",
+            "type": "integer"
+          }
+        }
+      },
+      "HTTPValidationError": {
+        "title": "HTTPValidationError",
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            }
+          }
+        }
+      },
+      "Student": {
+        "title": "Student",
+        "required": [
+          "track_id"
+        ],
+        "type": "object",
+        "properties": {
+          "track_id": {
+            "title": "Track Id",
+            "type": "integer"
+          }
+        }
+      },
+      "ValidationError": {
+        "title": "ValidationError",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "loc": {
+            "title": "Location",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
