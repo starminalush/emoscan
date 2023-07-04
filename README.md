@@ -9,7 +9,7 @@ MVP для проекта распознавания лиц для онлайн-
 ## Описание работы
 
 Схема работы проекта(в идеале) выглядит следующим образом:
-![я заглушка для картинки](https://drive.google.com/uc?export=view&id=1aeyA_eOEnlBic6NScsXhte6wzOXHFBJX)
+![я заглушка для картинки](https://drive.google.com/file/d/1jGrIK2ULV-TIO0OxrxMwafIZFWbcWA5F/view?usp=sharing)
 
 ## Документация модулей проекта 
  - [Frontend](https://github.com/starminalush/mfdp-2023-mvp/tree/main/frontend/#readme)
