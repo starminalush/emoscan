@@ -1,12 +1,14 @@
 # EmoScan
 
-Проекта распознавания лиц для онлайн-школ.
+MVP проекта распознавания лиц для онлайн-школ.
 
 [Макеты Figma](https://www.figma.com/file/UDO1ksG3vVUUHI131DGGCC/MFDP?type=design&node-id=0%3A1&t=tSmyiOsMtYIueP19-1)
 
 [LeanCanvas](https://www.notion.so/Lean-Canvas-5d9968e55be04d7288cda83e4c5567f6)
 
 [Промежуточный отчет по всем модулям курса MFDP](https://www.notion.so/MFDP-1cdf80efd24241a7ae400dc2f8d2b408)
+
+[Обученная модель для распознавания эмоций](https://github.com/starminalush/mfdp-2023)
 
 ## Краткое описание проекта:
 Существует следующая проблема: отток учеников из онлайн школ.
