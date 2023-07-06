@@ -49,7 +49,6 @@ if video_file is not None:
         st.subheader("Аналитика эмоций на видео")
         st.plotly_chart(fig, use_container_width=True)
 
-        c2.button("Скачать видео с метками эмоций")
     else:
         c2.write(
             "Не удалось распознать эмоции. Возможно, на загруженном видео нет людей."
