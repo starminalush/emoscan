@@ -1,6 +1,6 @@
 # EmoScan
 
-MVP проекта распознавания лиц для онлайн-школ.
+MVP проекта распознавания эмоций для онлайн-школ.
 
 [Макеты Figma](https://www.figma.com/file/UDO1ksG3vVUUHI131DGGCC/MFDP?type=design&node-id=0%3A1&t=tSmyiOsMtYIueP19-1)
 
